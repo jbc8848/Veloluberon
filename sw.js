@@ -1,10 +1,10 @@
-/* Étoile du Luberon — service worker v2.0.0
+/* Étoile du Luberon — service worker v2.1.0
    - App shell : cache-first (index, manifest, icônes, Leaflet, fonts)
    - Tuiles OSM : network-first avec mise en cache à la volée
      → les zones consultées en ligne restent visibles hors-ligne */
 'use strict';
 
-var VERSION = 'luberon-v2.0.0';
+var VERSION = 'luberon-v2.1.0';
 var SHELL_CACHE = VERSION + '-shell';
 var TILE_CACHE = VERSION + '-tiles';
 var TILE_LIMIT = 400;
@@ -65,6 +65,22 @@ self.addEventListener('fetch', function (e) {
           c.put(e.request, copy);
           trimTiles();
         });
+        return res;
+      }).catch(function () {
+        return caches.match(e.request);
+      })
+    );
+    return;
+  }
+
+  // Routage BRouter : réseau d'abord, cache en secours (URL complète avec query)
+  if (url.indexOf('brouter.de') !== -1) {
+    e.respondWith(
+      fetch(e.request).then(function (res) {
+        if (res.ok) {
+          var copy = res.clone();
+          caches.open(TILE_CACHE).then(function (c) { c.put(e.request, copy); });
+        }
         return res;
       }).catch(function () {
         return caches.match(e.request);

@@ -102,19 +102,19 @@ input[type=range]::-moz-range-thumb{
 .slider-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px}
 .slider-head span{font-size:.85rem; color:var(--muted)}
 .slider-head b{font-family:'Spline Sans Mono',monospace; font-size:1.15rem; color:var(--gold)}
-#target-slider{
+.km-slider{
   width:100%; -webkit-appearance:none; appearance:none; height:6px; border-radius:3px;
   background:linear-gradient(90deg,var(--aqua),var(--gold)); outline:none; cursor:pointer;
 }
-#target-slider::-webkit-slider-thumb{
+.km-slider::-webkit-slider-thumb{
   -webkit-appearance:none; appearance:none; width:26px; height:26px; border-radius:50%;
   background:var(--gold); border:3px solid var(--deep); box-shadow:0 1px 5px rgba(0,0,0,.5);
 }
-#target-slider::-moz-range-thumb{
+.km-slider::-moz-range-thumb{
   width:22px; height:22px; border-radius:50%;
   background:var(--gold); border:3px solid var(--deep); box-shadow:0 1px 5px rgba(0,0,0,.5);
 }
-#target-slider:focus-visible{outline:2px solid var(--aqua); outline-offset:4px}
+.km-slider:focus-visible{outline:2px solid var(--aqua); outline-offset:4px}
 .slider-marks{display:flex; justify-content:space-between; margin-top:6px;
   font-family:'Spline Sans Mono',monospace; font-size:.62rem; color:var(--muted)}
 .legend{display:grid; gap:8px; margin-top:12px}
@@ -264,24 +264,31 @@ footer{
 <script>
 'use strict';
 /* =========================================================
-   Étoile du Luberon — PWA · v2.0.0
+   Étoile du Luberon — PWA · v2.1.0
    Base : 62 chemin de la Fontaine de Guby, Saint-Saturnin-lès-Apt
-   Boucles construites par segments emboîtés, curseur 20→50 km/jour
+   Curseur global + curseurs par jour (20→50 km) ·
+   Routage BRouter (profil trekking) avec cache et repli schématique
    ========================================================= */
 
 var BASE = [43.9395, 5.3790];
 var BASE_POPUP = '<b>Base Airbnb</b><br>62 chemin de la Fontaine de Guby<br>Saint-Saturnin-lès-Apt · alt. \u2248 415 m';
 var DAYCOLORS = {j1:'#f0b860', j2:'#6fd6c9', j3:'#d98a4e'};
 
-var TARGET = 25;
+var TARGETS = {j1:25, j2:25, j3:25};
 try{
-  var t = parseInt(localStorage.getItem('luberon-target'),10);
-  if(t>=20 && t<=50){ TARGET = t; }
+  var savedT = JSON.parse(localStorage.getItem('luberon-targets')||'{}');
+  ['j1','j2','j3'].forEach(function(k){
+    var t = parseInt(savedT[k],10);
+    if(t>=20 && t<=50){ TARGETS[k] = t; }
+  });
 }catch(e){}
+function saveTargets(){
+  try{ localStorage.setItem('luberon-targets', JSON.stringify(TARGETS)); }catch(e){}
+}
 
 /* ---------- segments de routes (réutilisés entre niveaux) ---------- */
 function rev(a){ return a.slice().reverse(); }
-function P(){ // concatène des segments en supprimant les doublons de jonction
+function P(){
   var out=[];
   for(var i=0;i<arguments.length;i++){
     var s=arguments[i];
@@ -295,7 +302,6 @@ function P(){ // concatène des segments en supprimant les doublons de jonction
 }
 
 var SEG = {
-  /* J1 */
   d179_colorado:[[43.9395,5.3790],[43.9420,5.3820],[43.9430,5.3860],[43.9418,5.3900],[43.9400,5.3940],[43.9375,5.3985],[43.9345,5.4030],[43.9310,5.4080],[43.9280,5.4130],[43.9258,5.4165],[43.9250,5.4190],[43.9240,5.4230],[43.9228,5.4280],[43.9222,5.4330],[43.9228,5.4380],[43.9235,5.4430],[43.9238,5.4480],[43.9240,5.4560],[43.9238,5.4620],[43.9240,5.4700],[43.9240,5.4830],[43.9215,5.4870],[43.9195,5.4910],[43.9180,5.4950],[43.9170,5.4985]],
   liaison_gargas:[[43.9170,5.4985],[43.9150,5.4880],[43.9130,5.4770],[43.9110,5.4650],[43.9090,5.4530],[43.9075,5.4410],[43.9062,5.4290],[43.9055,5.4170],[43.9052,5.4050],[43.9055,5.3930],[43.9058,5.3800],[43.9060,5.3680],[43.9060,5.3555]],
   colorado_apt:[[43.9170,5.4985],[43.9140,5.4950],[43.9105,5.4900],[43.9070,5.4840],[43.9035,5.4770],[43.9000,5.4700],[43.8965,5.4620],[43.8930,5.4540],[43.8900,5.4460],[43.8870,5.4380],[43.8845,5.4300],[43.8820,5.4220],[43.8795,5.4140],[43.8778,5.4060],[43.8770,5.3990]],
@@ -304,7 +310,6 @@ var SEG = {
   d104_roussillon:[[43.9060,5.3555],[43.9052,5.3480],[43.9040,5.3410],[43.9022,5.3340],[43.9008,5.3270],[43.9000,5.3200],[43.9000,5.3130],[43.9010,5.3060],[43.9018,5.2990],[43.9020,5.2930]],
   d227_base:[[43.9020,5.2930],[43.9060,5.2960],[43.9105,5.3010],[43.9150,5.3070],[43.9195,5.3140],[43.9235,5.3210],[43.9270,5.3280],[43.9300,5.3360],[43.9330,5.3440],[43.9355,5.3520],[43.9375,5.3600],[43.9390,5.3680],[43.9395,5.3740],[43.9395,5.3790]],
   roussillon_joucas:[[43.9020,5.2930],[43.9040,5.2830],[43.9070,5.2730],[43.9100,5.2620],[43.9125,5.2530],[43.9140,5.2470]],
-  /* J2 */
   base_joucas:[[43.9395,5.3790],[43.9388,5.3690],[43.9375,5.3590],[43.9355,5.3480],[43.9330,5.3370],[43.9305,5.3270],[43.9280,5.3170],[43.9255,5.3070],[43.9228,5.2970],[43.9200,5.2870],[43.9175,5.2770],[43.9155,5.2670],[43.9142,5.2560],[43.9140,5.2470]],
   joucas_gordes:[[43.9140,5.2470],[43.9128,5.2420],[43.9110,5.2350],[43.9095,5.2280],[43.9088,5.2210],[43.9088,5.2140],[43.9095,5.2070],[43.9110,5.2000]],
   gordes_senanque:[[43.9110,5.2000],[43.9165,5.1995],[43.9210,5.1990],[43.9250,5.1985],[43.9262,5.1930],[43.9278,5.1890]],
@@ -312,7 +317,6 @@ var SEG = {
   murs_joucas:[[43.9510,5.2410],[43.9440,5.2460],[43.9370,5.2490],[43.9300,5.2500],[43.9220,5.2490],[43.9140,5.2470]],
   murs_col_lioux:[[43.9510,5.2410],[43.9530,5.2450],[43.9560,5.2500],[43.9590,5.2560],[43.9612,5.2640],[43.9618,5.2700],[43.9625,5.2770],[43.9632,5.2840],[43.9640,5.2910],[43.9648,5.2980],[43.9652,5.3040]],
   lioux_base:[[43.9652,5.3040],[43.9645,5.3080],[43.9625,5.3140],[43.9600,5.3200],[43.9575,5.3270],[43.9552,5.3340],[43.9530,5.3410],[43.9512,5.3480],[43.9508,5.3550],[43.9495,5.3610],[43.9475,5.3670],[43.9450,5.3720],[43.9420,5.3760],[43.9395,5.3790]],
-  /* J3 */
   d943_apt:[[43.9395,5.3790],[43.9360,5.3775],[43.9310,5.3760],[43.9255,5.3755],[43.9200,5.3760],[43.9145,5.3775],[43.9090,5.3795],[43.9035,5.3820],[43.8980,5.3850],[43.8925,5.3885],[43.8870,5.3925],[43.8820,5.3960],[43.8785,5.3985]],
   veloroute_pj:[[43.8785,5.3985],[43.8755,5.3890],[43.8730,5.3790],[43.8710,5.3690],[43.8695,5.3590],[43.8680,5.3480],[43.8665,5.3370],[43.8650,5.3260],[43.8635,5.3150],[43.8622,5.3060]],
   pj_goult:[[43.8622,5.3060],[43.8635,5.2950],[43.8645,5.2840],[43.8645,5.2720],[43.8640,5.2600],[43.8632,5.2490]],
@@ -326,7 +330,6 @@ var SEG = {
   saignon_bonnieux:[[43.8635,5.4280],[43.8600,5.4210],[43.8565,5.4130],[43.8530,5.4050],[43.8500,5.3960],[43.8470,5.3870],[43.8445,5.3780],[43.8420,5.3690],[43.8395,5.3600],[43.8370,5.3510],[43.8345,5.3420],[43.8320,5.3330],[43.8295,5.3240],[43.8270,5.3160],[43.8250,5.3090]]
 };
 
-/* ---------- POI (arrêts à pied) ---------- */
 var POI = {
   colorado:[43.917,5.4985,'Colorado proven\u00e7al \u2014 marche 45 min \u00e0 1 h'],
   ocres:[43.900,5.2915,'Sentier des Ocres \u2014 35 min \u00e0 pied'],
@@ -350,11 +353,10 @@ var LBL = {
   stpant:[43.888,5.2295,'St-Pantal\u00e9on']
 };
 
-/* ---------- niveaux emboîtés par journée ---------- */
 var DATA = [
 {
   id:'j1', tab:'J1', date:'30 sept', theme:'Le pays des Ocres', sub:'Jour 1 · Mardi 30 septembre',
-  intro:'Boucle <b>est</b> autour des sites ocriers. Le curseur de l\u2019accueil fait grandir la journ\u00e9e : Colorado seul, puis Gargas, Roussillon, Joucas, jusqu\u2019\u00e0 la boucle balis\u00e9e n\u00b013 compl\u00e8te.',
+  intro:'Boucle <b>est</b> autour des sites ocriers. Le curseur fait grandir la journ\u00e9e : Colorado seul, puis Gargas, Roussillon, Joucas, jusqu\u2019\u00e0 la boucle balis\u00e9e n\u00b013 compl\u00e8te.',
   levels:[
     {km:23, dplus:'280 m', selle:'1 h 45', effort:'\u2248 3 h 30', name:'Colorado proven\u00e7al',
       desc:'<b>Aller-retour au Colorado par Villars :</b> marche du Sahara + pique-nique sur site, retour par le m\u00eame itin\u00e9raire vallonn\u00e9. Roussillon reste accessible en voiture en fin d\u2019apr\u00e8s-midi (15 min).',
@@ -581,12 +583,44 @@ var DATA = [
 ];
 
 function levelFor(day){
-  var best = day.levels[0], bd = Math.abs(day.levels[0].km - TARGET);
+  var target = TARGETS[day.id];
+  var best = day.levels[0], bd = Math.abs(day.levels[0].km - target);
   day.levels.forEach(function(l){
-    var d = Math.abs(l.km - TARGET);
+    var d = Math.abs(l.km - target);
     if(d < bd){ best = l; bd = d; }
   });
   return best;
+}
+
+/* ---------- routage BRouter (suivi précis des routes) ---------- */
+function sampleN(pts, maxN){
+  if(pts.length<=maxN) return pts;
+  var out=[], step=(pts.length-1)/(maxN-1);
+  for(var i=0;i<maxN;i++){ out.push(pts[Math.round(i*step)]); }
+  return out;
+}
+
+function routeKey(day, l){ return 'lubrt-' + day.id + '-' + l.km; }
+
+function getRoute(day, l, cb){
+  var key = routeKey(day, l);
+  try{
+    var cached = localStorage.getItem(key);
+    if(cached){ cb(JSON.parse(cached), 'cache', null); return; }
+  }catch(e){}
+  var wps = sampleN(l.pts, 26).map(function(p){ return p[1].toFixed(5)+','+p[0].toFixed(5); });
+  var url = 'https://brouter.de/brouter?lonlats=' + wps.join('|') + '&profile=trekking&alternativeidx=0&format=geojson';
+  fetch(url).then(function(r){
+    if(!r.ok){ throw new Error('http '+r.status); }
+    return r.json();
+  }).then(function(gj){
+    var f = gj && gj.features && gj.features[0];
+    var coords = f.geometry.coordinates.map(function(q){ return [ +q[1].toFixed(5), +q[0].toFixed(5) ]; });
+    coords = sampleN(coords, 600);
+    try{ localStorage.setItem(key, JSON.stringify(coords)); }catch(e){}
+    var lenKm = f.properties && f.properties['track-length'] ? Math.round(f.properties['track-length']/1000) : null;
+    cb(coords, 'live', lenKm);
+  }).catch(function(){ cb(null, 'fail', null); });
 }
 
 /* ---------- helpers UI ---------- */
@@ -646,7 +680,15 @@ function timelineHtml(steps){
   return h+'</ul>';
 }
 
-function sliderHtml(){
+function sliderMarkup(id, value, label){
+  return '<div class="slider-box">'
+    +'<div class="slider-head"><span>'+label+'</span><b id="'+id+'-val">'+value+' km</b></div>'
+    +'<input type="range" id="'+id+'" class="km-slider" min="20" max="50" step="5" value="'+value+'" aria-label="'+label+'">'
+    +'<div class="slider-marks"><span>20</span><span>25</span><span>30</span><span>35</span><span>40</span><span>45</span><span>50</span></div>'
+    +'</div>';
+}
+
+function legendHtml(){
   var totKm=0, totD=0, rows='';
   DATA.forEach(function(day){
     var l = levelFor(day);
@@ -656,21 +698,19 @@ function sliderHtml(){
          + '<span class="nm">'+day.tab+' \u00b7 '+l.name+'</span>'
          + '<span class="st">'+l.km+' km \u00b7 '+l.dplus+' D+</span></div>';
   });
-  return '<div class="slider-box">'
-    +'<div class="slider-head"><span>Distance quotidienne vis\u00e9e</span><b id="target-val">'+TARGET+' km</b></div>'
-    +'<input type="range" id="target-slider" min="20" max="50" step="5" value="'+TARGET+'" aria-label="Distance quotidienne vis\u00e9e en kilom\u00e8tres">'
-    +'<div class="slider-marks"><span>20</span><span>25</span><span>30</span><span>35</span><span>40</span><span>45</span><span>50</span></div>'
-    +'</div>'
-    +'<div class="legend">'+rows+'</div>'
-    +'<p class="map-note" style="margin-top:10px">Total s\u00e9jour : \u2248 '+totKm+' km \u00b7 '+totD+' m D+. Chaque cran s\u00e9lectionne la boucle la plus proche de l\u2019objectif \u2014 les extensions s\u2019embo\u00eetent sur les tron\u00e7ons d\u00e9j\u00e0 valid\u00e9s.</p>';
+  return '<div class="legend">'+rows+'</div>'
+    +'<p class="map-note" style="margin-top:10px">Total s\u00e9jour : \u2248 '+totKm+' km \u00b7 '+totD+' m D+. Le curseur global r\u00e8gle les trois jours d\u2019un coup ; chaque journ\u00e9e peut ensuite \u00eatre ajust\u00e9e individuellement dans son onglet.</p>';
 }
 
 function overviewHtml(){
+  var g = Math.round((TARGETS.j1+TARGETS.j2+TARGETS.j3)/3/5)*5;
   return '<div class="card">'
     +'<h2><small>Vue d\u2019ensemble \u00b7 30 sept \u2013 2 oct</small>Le s\u00e9jour en un coup d\u2019\u0153il</h2>'
-    +'<p class="muted" style="margin:10px 0 14px">Trois boucles en \u00e9toile depuis le 62 chemin de la Fontaine de Guby : J1 l\u2019est des Ocres, J2 le nord-ouest des Monts de Vaucluse, J3 le sud du Calavon. R\u00e8gle la distance du jour \u2014 le choix s\u2019applique \u00e0 toute l\u2019app et reste m\u00e9moris\u00e9.</p>'
-    +'<div id="slider-zone">'+sliderHtml()+'</div>'
+    +'<p class="muted" style="margin:10px 0 14px">Trois boucles en \u00e9toile depuis le 62 chemin de la Fontaine de Guby : J1 l\u2019est des Ocres, J2 le nord-ouest des Monts de Vaucluse, J3 le sud du Calavon. R\u00e8gle la distance \u2014 les choix restent m\u00e9moris\u00e9s.</p>'
+    +sliderMarkup('slider-global', g, 'Distance quotidienne \u2014 r\u00e9glage global (les 3 jours)')
+    +legendHtml()
     +'<div class="map" id="map-apercu" style="position:relative;margin-top:14px"></div>'
+    +'<p class="map-note" id="rtstatus-apercu" style="margin-top:8px">Trac\u00e9s : sch\u00e9ma \u2014 affinage par routage en cours\u2026</p>'
     +'</div>';
 }
 
@@ -679,12 +719,13 @@ function dayHtml(day){
   var h = '<div class="card">'
     +'<h2><small>'+day.sub+'</small>'+l.name+'</h2>'
     +'<p class="muted" style="margin-top:8px">'+day.intro+'</p>'
-    +'<p class="map-note" style="margin-top:10px">Objectif '+TARGET+' km (r\u00e9glable sur l\u2019accueil) \u2192 boucle de <b style="color:var(--gold)">'+l.km+' km</b>.</p>'
+    +sliderMarkup('slider-'+day.id, TARGETS[day.id], 'Distance de cette journ\u00e9e')
     +statHtml(l)
     +'<div class="variant-desc">'+l.desc+'</div>'
     +'</div>';
   h += '<div class="card"><h3>Carte</h3><div class="map" id="map-'+day.id+'" style="position:relative"></div>'
-    +'<p class="map-note">\u2605 = base Airbnb (62 ch. de la Fontaine de Guby) \u00b7 \ud83d\udc5f = visite/marche \u00e0 pied, v\u00e9los attach\u00e9s \u00b7 fl\u00e8ches = sens de parcours \u00b7 trac\u00e9s suivant les routes r\u00e9elles ; pour un guidage GPS au m\u00e8tre, charger les GPX officiels (onglet Pratique). 100 % compatible VTC : goudron et voie verte uniquement.</p></div>';
+    +'<p class="map-note" id="rtstatus-'+day.id+'" style="margin-top:8px">Trac\u00e9 : sch\u00e9ma \u2014 affinage par routage en cours\u2026</p>'
+    +'<p class="map-note">\u2605 = base Airbnb (62 ch. de la Fontaine de Guby) \u00b7 \ud83d\udc5f = visite/marche \u00e0 pied, v\u00e9los attach\u00e9s \u00b7 fl\u00e8ches = sens de parcours \u00b7 100 % compatible VTC : goudron et voie verte uniquement. GPX officiels : onglet Pratique.</p></div>';
   h += '<div class="card"><h3>Profil de d\u00e9nivel\u00e9</h3><div class="profile">'+profileSvg(l.prof)+'</div></div>';
   h += '<div class="card"><h3>D\u00e9roul\u00e9 de la journ\u00e9e</h3>'+timelineHtml(l.timeline)+'</div>';
   h += '<div class="card"><h3>Variantes m\u00e9t\u00e9o</h3><div class="meteo">';
@@ -701,7 +742,7 @@ function practicalHtml(){
   +'<li>Rouler en <b>deux groupes de 4</b> sur les routes \u00e9troites, regroupement \u00e0 chaque village.</li>'
   +'<li>Pause toutes les 1 h \u2013 1 h 15, m\u00eame courte : boire, s\u2019\u00e9tirer, v\u00e9rifier tout le monde.</li>'
   +'<li>Le plus lent donne le tempo \u2014 l\u2019assistance sert \u00e0 rester ensemble, pas \u00e0 aller vite.</li>'
-  +'<li>Le curseur de l\u2019accueil ajuste l\u2019ambition : 20\u201325 km = matin\u00e9es douces et apr\u00e8s-midis libres, 45\u201350 km = journ\u00e9es compl\u00e8tes 9 h \u2013 17 h. Rien n\u2019emp\u00eache de changer chaque soir selon la forme du groupe.</li>'
+  +'<li>Les curseurs ajustent l\u2019ambition jour par jour : 20\u201325 km = matin\u00e9es douces, 45\u201350 km = journ\u00e9es compl\u00e8tes 9 h \u2013 17 h. Rien n\u2019emp\u00eache de changer chaque soir selon la forme du groupe.</li>'
   +'</ul></div>'
   +'<div class="card"><h3>VTC \u00e9lectriques & rev\u00eatement</h3><ul class="plain">'
   +'<li>Itin\u00e9raires 100 % compatibles VTC : routes goudronn\u00e9es + v\u00e9loroute du Calavon. <b>La v\u00e9loroute est goudronn\u00e9e sur tout son trac\u00e9</b> (Robion \u2192 Apt \u2192 D48 vers Castellet), en voie verte sans voiture sauf ~2 km au lieu-dit Le Ch\u00eane et ~500 m aux Beaumettes, \u00e0 Coustellet et avenue des Gen\u00eats \u00e0 Apt.</li>'
@@ -710,6 +751,7 @@ function practicalHtml(){
   +'<li>Pression pneus c\u00f4t\u00e9 haut de la plage (\u2248 3,5\u20134 bars) : meilleur rendement sur goudron avec les sacoches de pique-nique.</li>'
   +'</ul></div>'
   +'<div class="card"><h3>Itin\u00e9raires officiels & GPX</h3><ul class="plain">'
+  +'<li><b>Trac\u00e9s de l\u2019app :</b> affin\u00e9s automatiquement par le routeur communautaire BRouter (profil trekking, privil\u00e9gie v\u00e9loroutes et petites routes). Une fois charg\u00e9s en ligne, ils restent en m\u00e9moire hors connexion.</li>'
   +'<li><b>J1 (niveau 51 km) :</b> boucle balis\u00e9e n\u00b013 \u00ab Les Ocres \u00e0 v\u00e9lo \u00bb (pastilles orange/blanc, liaisons de raccourci en ocre jaune). L\u2019appli gratuite \u00ab Ocres \u00e0 v\u00e9lo \u00bb du Parc du Luberon ajoute audio-guides et quizz.</li>'
   +'<li><b>J3 :</b> Bonnieux et Lacoste sont sur la grande boucle balis\u00e9e \u00ab Autour du Luberon \u00bb (V863) \u2014 panneaux bleus sens horaire, orange anti-horaire.</li>'
   +'<li>Traces GPX officielles t\u00e9l\u00e9chargeables gratuitement sur <b>veloloisirprovence.com</b> \u2014 \u00e0 charger la veille sur un ou deux t\u00e9l\u00e9phones du groupe en secours du balisage.</li>'
@@ -717,7 +759,7 @@ function practicalHtml(){
   +'<div class="card"><h3>Batteries</h3><ul class="plain">'
   +'<li>Charge compl\u00e8te chaque soir \u00e0 l\u2019Airbnb (multiprise + rallonge \u00e0 pr\u00e9voir).</li>'
   +'<li>Mode \u00c9co sur le plat, Tour en mont\u00e9e, Turbo r\u00e9serv\u00e9 aux passages raides (Gordes, S\u00e9nanque, Saignon).</li>'
-  +'<li>Aucun niveau ne d\u00e9passe 51 km : une batterie standard (500 Wh) suffit largement, m\u00eame en usage g\u00e9n\u00e9reux.</li>'
+  +'<li>Aucun niveau ne d\u00e9passe 51 km : une batterie standard (500 Wh) suffit largement.</li>'
   +'<li>Kit de base : 2 chambres \u00e0 air (formats du groupe), pompe, multi-outil, attache rapide, gilets si ciel couvert.</li>'
   +'</ul></div>'
   +'<div class="card"><h3>Pique-niques</h3><ul class="plain">'
@@ -731,7 +773,7 @@ function practicalHtml(){
   +'<li>D\u00e9but octobre : lumi\u00e8re dor\u00e9e, vignes qui rougissent, foules parties \u2014 la meilleure p\u00e9riode.</li>'
   +'</ul></div>'
   +'<div class="warn"><b>S\u00e9curit\u00e9 :</b> casque pour tous, \u00e9clairage en \u00e9tat, et prudence particuli\u00e8re dans les <b>descentes de S\u00e9nanque et de Gordes</b> (pentes \u00e0 10\u201312 %, virages serr\u00e9s). En VAE le poids du v\u00e9lo allonge le freinage : freiner t\u00f4t, par \u00e0-coups, et ne jamais h\u00e9siter \u00e0 mettre pied \u00e0 terre. Num\u00e9ro d\u2019urgence europ\u00e9en : 112.</div>'
-  +'<div class="card" style="margin-top:16px"><h3>M\u00e9t\u00e9o \u2014 o\u00f9 v\u00e9rifier</h3><p class="muted">Chaque soir : pr\u00e9vision M\u00e9t\u00e9o-France pour \u00ab Saint-Saturnin-l\u00e8s-Apt \u00bb + carte des rafales. Si rafales annonc\u00e9es &gt; 50 km/h : r\u00e9duire le curseur et basculer sur les variantes abrit\u00e9es indiqu\u00e9es \u00e0 chaque journ\u00e9e.</p></div>';
+  +'<div class="card" style="margin-top:16px"><h3>M\u00e9t\u00e9o \u2014 o\u00f9 v\u00e9rifier</h3><p class="muted">Chaque soir : pr\u00e9vision M\u00e9t\u00e9o-France pour \u00ab Saint-Saturnin-l\u00e8s-Apt \u00bb + carte des rafales. Si rafales annonc\u00e9es &gt; 50 km/h : r\u00e9duire les curseurs et basculer sur les variantes abrit\u00e9es indiqu\u00e9es \u00e0 chaque journ\u00e9e.</p></div>';
 }
 
 /* ---------- cartes ---------- */
@@ -742,7 +784,7 @@ function bearingDeg(p1, p2){
   return Math.atan2(dx, dy) * 180/Math.PI;
 }
 
-function addArrows(m, pts, color, n){
+function addArrows(target, pts, color, n){
   var cum = [0];
   for(var i=1;i<pts.length;i++){
     var lat = (pts[i-1][0]+pts[i][0])/2 * Math.PI/180;
@@ -753,10 +795,10 @@ function addArrows(m, pts, color, n){
   var total = cum[cum.length-1];
   var N = n || 9;
   for(var k=1;k<=N;k++){
-    var target = total * k/(N+1);
+    var tgt = total * k/(N+1);
     var j = 1;
-    while(j<cum.length-1 && cum[j]<target){ j++; }
-    var t = (target - cum[j-1]) / ((cum[j]-cum[j-1])||1);
+    while(j<cum.length-1 && cum[j]<tgt){ j++; }
+    var t = (tgt - cum[j-1]) / ((cum[j]-cum[j-1])||1);
     var lat2 = pts[j-1][0] + (pts[j][0]-pts[j-1][0])*t;
     var lng2 = pts[j-1][1] + (pts[j][1]-pts[j-1][1])*t;
     var ang = bearingDeg(pts[j-1], pts[j]);
@@ -766,7 +808,7 @@ function addArrows(m, pts, color, n){
           +'<path d="M9 2 L14.5 13 L9 10.2 L3.5 13 Z" fill="'+color+'" stroke="#08252e" stroke-width="1.4" stroke-linejoin="round"/></svg>',
       iconSize:[18,18], iconAnchor:[9,9]
     });
-    L.marker([lat2,lng2], {icon:ic, interactive:false, keyboard:false}).addTo(m);
+    L.marker([lat2,lng2], {icon:ic, interactive:false, keyboard:false}).addTo(target);
   }
 }
 
@@ -811,13 +853,42 @@ function makeMap(elId){
     setTimeout(function(){ if(w.parentNode){ w.parentNode.removeChild(w); } }, 7000);
   });
   L.marker(BASE, {icon: baseIcon(), title:'Base Airbnb'}).addTo(m).bindPopup(BASE_POPUP);
+  m._tracks = {};
   return m;
+}
+
+function drawTrack(m, key, pts, color, nArrows){
+  if(m._tracks[key]){ try{ m.removeLayer(m._tracks[key]); }catch(e){} }
+  var g = L.layerGroup().addTo(m);
+  L.polyline(pts, {color:color, weight:4.5, opacity:.95}).addTo(g);
+  addArrows(g, pts, color, nArrows);
+  m._tracks[key] = g;
+  return g;
+}
+
+function setStatus(id, txt){
+  var el = document.getElementById(id);
+  if(el){ el.textContent = txt; }
+}
+
+function refineTrack(m, day, l, statusId, nArrows){
+  getRoute(day, l, function(coords, srcType, lenKm){
+    if(!coords){
+      setStatus(statusId, 'Trac\u00e9 sch\u00e9matique (routeur indisponible \u2014 r\u00e9essayer en ligne). GPX officiels recommand\u00e9s pour le guidage.');
+      return;
+    }
+    if(!maps[m._lubId]){ return; } /* carte détruite entre-temps */
+    drawTrack(m, 'day-'+day.id, coords, DAYCOLORS[day.id], nArrows);
+    var extra = lenKm ? ' \u00b7 ' + lenKm + ' km rout\u00e9s' : '';
+    setStatus(statusId, 'Trac\u00e9 affin\u00e9 par routage BRouter \u2014 suit les routes et la v\u00e9loroute' + extra + (srcType==='cache' ? ' (m\u00e9moire locale)' : '') + '.');
+  });
 }
 
 function initDayMap(day){
   if(maps[day.id]){ setTimeout(function(){maps[day.id].invalidateSize();},60); return; }
   try{
     var m = makeMap('map-'+day.id);
+    m._lubId = day.id;
     var l = levelFor(day);
     (l.labels||[]).forEach(function(lb){
       L.circleMarker([lb[0],lb[1]], {radius:4, color:'#6fd6c9', weight:2, fillColor:'#08252e', fillOpacity:1})
@@ -825,10 +896,10 @@ function initDayMap(day){
         .bindTooltip(lb[2], {permanent:true, direction:'top', offset:[0,-6], className:'vlab'});
     });
     addPois(m, l.pois);
-    var line = L.polyline(l.pts, {color:DAYCOLORS[day.id], weight:4.5, opacity:.95}).addTo(m);
-    addArrows(m, l.pts, DAYCOLORS[day.id], 8);
-    m.fitBounds(line.getBounds(), {padding:[24,24]});
+    var g = drawTrack(m, 'day-'+day.id, l.pts, DAYCOLORS[day.id], 8);
+    m.fitBounds(L.polyline(l.pts).getBounds(), {padding:[24,24]});
     maps[day.id] = m;
+    refineTrack(m, day, l, 'rtstatus-'+day.id, 8);
   }catch(e){
     var el = document.getElementById('map-'+day.id);
     if(el){ el.innerHTML = '<p style="padding:20px" class="muted">Carte indisponible hors connexion \u2014 le d\u00e9roul\u00e9 et le profil restent consultables.</p>'; }
@@ -839,13 +910,26 @@ function initOverviewMap(){
   if(maps.apercu){ setTimeout(function(){maps.apercu.invalidateSize();},60); return; }
   try{
     var m = makeMap('map-apercu');
+    m._lubId = 'apercu';
     var bounds = null;
+    var pending = DATA.length, refined = 0, failed = 0;
     DATA.forEach(function(day){
       var l = levelFor(day);
-      var line = L.polyline(l.pts, {color:DAYCOLORS[day.id], weight:4, opacity:.9}).addTo(m);
-      addArrows(m, l.pts, DAYCOLORS[day.id], 5);
+      drawTrack(m, 'day-'+day.id, l.pts, DAYCOLORS[day.id], 5);
       addPois(m, l.pois);
-      bounds = bounds ? bounds.extend(line.getBounds()) : L.latLngBounds(line.getBounds().getSouthWest(), line.getBounds().getNorthEast());
+      var b = L.polyline(l.pts).getBounds();
+      bounds = bounds ? bounds.extend(b) : L.latLngBounds(b.getSouthWest(), b.getNorthEast());
+      getRoute(day, l, function(coords){
+        pending--;
+        if(coords && maps.apercu){ drawTrack(m, 'day-'+day.id, coords, DAYCOLORS[day.id], 5); refined++; }
+        else if(!coords){ failed++; }
+        if(pending===0){
+          setStatus('rtstatus-apercu', failed===0
+            ? 'Trac\u00e9s affin\u00e9s par routage BRouter \u2014 suivent les routes et la v\u00e9loroute.'
+            : (refined>0 ? 'Trac\u00e9s partiellement affin\u00e9s ('+refined+'/3) \u2014 r\u00e9essayer en ligne pour le reste.'
+                         : 'Trac\u00e9s sch\u00e9matiques (routeur indisponible \u2014 r\u00e9essayer en ligne).'));
+        }
+      });
     });
     if(bounds){ m.fitBounds(bounds, {padding:[26,26]}); }
     maps.apercu = m;
@@ -907,19 +991,25 @@ function showTab(id, btn){
   if(day){ initDayMap(day); }
 }
 
-/* curseur : délégation sur input */
+/* curseurs : délégation */
 mainEl.addEventListener('input', function(ev){
-  if(ev.target && ev.target.id === 'target-slider'){
-    TARGET = parseInt(ev.target.value,10);
-    try{ localStorage.setItem('luberon-target', String(TARGET)); }catch(e){}
-    var v = document.getElementById('target-val');
-    if(v){ v.textContent = TARGET + ' km'; }
-  }
+  var el = ev.target;
+  if(!el || !el.classList || !el.classList.contains('km-slider')) return;
+  var v = document.getElementById(el.id+'-val');
+  if(v){ v.textContent = el.value + ' km'; }
 });
 mainEl.addEventListener('change', function(ev){
-  if(ev.target && ev.target.id === 'target-slider'){
-    buildAll(); // re-rendu complet au relâchement du curseur
+  var el = ev.target;
+  if(!el || !el.classList || !el.classList.contains('km-slider')) return;
+  var val = parseInt(el.value,10);
+  if(el.id === 'slider-global'){
+    TARGETS.j1 = val; TARGETS.j2 = val; TARGETS.j3 = val;
+  }else{
+    var dayId = el.id.replace('slider-','');
+    if(TARGETS.hasOwnProperty(dayId)){ TARGETS[dayId] = val; }
   }
+  saveTargets();
+  buildAll();
 });
 
 buildAll();
