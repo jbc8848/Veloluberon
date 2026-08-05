@@ -203,13 +203,13 @@ footer{
 
 <nav class="tabs" id="tabs"></nav>
 
-<footer>Étoile du Luberon · v1.4.0 · tracés indicatifs — vérifier l'état des routes sur place</footer>
+<footer>Étoile du Luberon · v1.2.0 · tracés indicatifs — vérifier l'état des routes sur place</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 'use strict';
 /* =========================================================
-   Étoile du Luberon — PWA mono-fichier · v1.4.0
+   Étoile du Luberon — PWA mono-fichier · v1.2.0
    Base : Saint-Saturnin-lès-Apt (43.943, 5.383 · alt. 420 m)
    ========================================================= */
 
@@ -219,27 +219,27 @@ var DATA = [
 {
   id:'j1', tab:'Jour 1', date:'Mar 30 sept',
   title:'Le pays des Ocres', sub:'Jour 1 · Mardi 30 septembre',
-  intro:'Boucle est : Colorado provençal le matin, sentier des Ocres de Roussillon l\u2019après-midi. Deux courtes marches sur sites (prévoir chaussures fermées).',
+  intro:'Boucle est : Colorado provençal le matin, sentier des Ocres de Roussillon l\u2019après-midi. Le parcours principal suit la <b>boucle officielle balisée n°13 « Les Ocres à vélo »</b> (pastilles orange sur fond blanc) — navigation sans GPS. Deux courtes marches sur sites (chaussures fermées).',
   labels:[[43.925,5.418,'Villars'],[43.924,5.484,'Rustrel'],[43.916,5.500,'Colorado'],[43.898,5.470,'Caseneuve'],[43.876,5.397,'Apt'],[43.906,5.354,'Gargas'],[43.902,5.293,'Roussillon'],[43.915,5.247,'Joucas']],
   variants:{
-    main:{label:'Principale', dist:'52 km', dplus:'700 m', selle:'3 h 45', effort:'≈ 6 h',
-      desc:'<b>St-Saturnin → Villars → Rustrel (Colorado) → Caseneuve → Apt → Gargas → Roussillon → Joucas → retour.</b> Routes secondaires calmes (D179, D22, D209, D104), une seule vraie montée vers Caseneuve.',
-      pts:[[43.943,5.383],[43.938,5.402],[43.925,5.418],[43.922,5.452],[43.924,5.484],[43.916,5.500],[43.909,5.512],[43.898,5.470],[43.884,5.430],[43.876,5.397],[43.891,5.372],[43.906,5.354],[43.903,5.320],[43.902,5.293],[43.909,5.268],[43.915,5.247],[43.928,5.290],[43.936,5.335],[43.943,5.383]],
-      prof:[[0,420],[4,375],[9,400],[12,385],[16,505],[20,600],[26,250],[31,270],[38,340],[43,300],[52,420]]},
-    easy:{label:'Facile', dist:'41 km', dplus:'430 m', selle:'3 h', effort:'≈ 5 h',
-      desc:'<b>Sans la montée de Caseneuve :</b> depuis Rustrel, retour direct sur Apt par la D22 (descente douce), puis véloroute du Calavon jusqu\u2019à Gargas et Roussillon. Idéal si le groupe veut garder des jambes pour les marches sur les ocres.',
+    main:{label:'Principale', dist:'51 km', dplus:'420 m', selle:'3 h 30', effort:'≈ 6 h',
+      desc:'<b>Boucle balisée n°13 « Les Ocres à vélo » :</b> St-Saturnin → Villars → Rustrel (Colorado) → D22 → Apt → Gargas → Roussillon → retour. Suivre les pastilles n°13 orange sur fond blanc (blanc sur orange = sens inverse). Prudence aux traversées des D4, D943 et D22.',
       pts:[[43.943,5.383],[43.938,5.402],[43.925,5.418],[43.922,5.452],[43.924,5.484],[43.916,5.500],[43.910,5.470],[43.888,5.420],[43.876,5.397],[43.891,5.372],[43.906,5.354],[43.903,5.320],[43.902,5.293],[43.909,5.268],[43.915,5.247],[43.928,5.290],[43.936,5.335],[43.943,5.383]],
-      prof:[[0,420],[4,375],[9,400],[12,385],[17,330],[21,250],[26,270],[31,340],[35,300],[41,420]]},
-    long:{label:'Longue', dist:'64 km', dplus:'920 m', selle:'4 h 30', effort:'≈ 6 h 45',
-      desc:'<b>Extension Viens :</b> après le Colorado, montée jusqu\u2019au village perché de Viens (belvédère sur les Monts de Vaucluse), puis Caseneuve et la suite du parcours principal. Pour un groupe qui roule bien — batteries en mode éco le matin.',
-      pts:[[43.943,5.383],[43.938,5.402],[43.925,5.418],[43.922,5.452],[43.924,5.484],[43.916,5.500],[43.918,5.530],[43.905,5.555],[43.898,5.520],[43.898,5.470],[43.884,5.430],[43.876,5.397],[43.891,5.372],[43.906,5.354],[43.903,5.320],[43.902,5.293],[43.909,5.268],[43.915,5.247],[43.928,5.290],[43.936,5.335],[43.943,5.383]],
-      prof:[[0,420],[4,375],[9,400],[12,385],[17,600],[22,630],[27,600],[33,250],[38,270],[45,340],[50,300],[64,420]]}
+      prof:[[0,420],[5,375],[10,400],[14,385],[20,330],[26,250],[32,270],[38,340],[44,300],[51,420]]},
+    easy:{label:'Facile', dist:'38 km', dplus:'310 m', selle:'2 h 45', effort:'≈ 5 h',
+      desc:'<b>Raccourci par les liaisons officielles (marquage ocre jaune) :</b> après Rustrel, couper directement vers Gargas sans descendre sur Apt, puis Roussillon et retour. Idéal pour garder des jambes pour les deux marches sur les sites ocriers.',
+      pts:[[43.943,5.383],[43.938,5.402],[43.925,5.418],[43.922,5.452],[43.924,5.484],[43.916,5.500],[43.912,5.460],[43.905,5.410],[43.906,5.354],[43.903,5.320],[43.902,5.293],[43.909,5.268],[43.915,5.247],[43.928,5.290],[43.936,5.335],[43.943,5.383]],
+      prof:[[0,420],[5,375],[10,400],[14,385],[19,320],[24,270],[29,340],[33,300],[38,420]]},
+    long:{label:'Longue', dist:'60 km', dplus:'720 m', selle:'4 h 15', effort:'≈ 6 h 45',
+      desc:'<b>Crochet Gignac–Caseneuve (hors balisage) :</b> après le Colorado, montée en balcon vers Caseneuve (beau point de vue sur la vallée du Calavon) avant de redescendre sur Apt et de reprendre la boucle n°13. La seule vraie montée de la journée — mode Tour/Sport.',
+      pts:[[43.943,5.383],[43.938,5.402],[43.925,5.418],[43.922,5.452],[43.924,5.484],[43.916,5.500],[43.909,5.512],[43.898,5.470],[43.884,5.430],[43.876,5.397],[43.891,5.372],[43.906,5.354],[43.903,5.320],[43.902,5.293],[43.909,5.268],[43.915,5.247],[43.928,5.290],[43.936,5.335],[43.943,5.383]],
+      prof:[[0,420],[4,375],[9,400],[13,385],[18,505],[22,600],[29,250],[35,270],[42,340],[48,300],[60,420]]}
   },
   timeline:[
     {h:'09h00', t:'<b>Départ Airbnb.</b> Descente vers Villars par la D179, échauffement tranquille.'},
     {h:'09h50', t:'<b>Rustrel — Colorado provençal.</b> Vélos au parking, marche du circuit du Sahara (45 min à 1 h, sable ocre, prévoir eau).'},
-    {h:'11h15', t:'Reprise. Montée régulière vers Caseneuve (mode Tour/Sport conseillé), beau balcon sur la vallée du Calavon.'},
-    {h:'12h00', t:'Descente sur Apt, traversée par la véloroute, remontée douce vers Gargas.'},
+    {h:'11h15', t:'Reprise en suivant les pastilles n°13 : descente douce vers Apt par la D22 (prudence à la traversée). Ravitaillement possible en ville.'},
+    {h:'12h00', t:'Traversée d\u2019Apt par la véloroute du Calavon, remontée tranquille vers Gargas (Mines de Bruoux sur la droite — visite possible un autre jour).'},
     {h:'12h45', t:'<b>Pique-nique à Roussillon</b> — aire ombragée sous le village ou place haute avec vue.', pic:true},
     {h:'14h00', t:'<b>Sentier des Ocres</b> (petit circuit 35 min, billet ≈ 3,50 €). Café sur la place ensuite.'},
     {h:'15h15', t:'Reprise vers Joucas par la D104, village calme en pierres blondes.'},
@@ -418,10 +418,15 @@ function practicalHtml(){
   +'<li>Départ 9 h ± 1 h selon météo, retour visé 16 h 30 – 17 h : de la marge est prévue chaque jour.</li>'
   +'</ul></div>'
   +'<div class="card"><h3>VTC électriques & revêtement</h3><ul class="plain">'
-  +'<li>Itinéraires 100 % compatibles VTC : routes goudronnées + véloroute du Calavon. <b>À l\u2019ouest d\u2019Apt la véloroute est revêtue</b> ; à l\u2019est (vers Rustrel/Céreste) elle est en stabilisé bien roulant — OK en VTC par temps sec, préférer la D22 goudronnée si sol détrempé.</li>'
-  +'<li>Ne pas suivre les raccourcis « VTT » proposés par les GPS/applis entre villages (chemins caillouteux fréquents dans les Monts de Vaucluse) : rester sur le tracé routier.</li>'
-  +'<li>Sur les sites (Colorado, sentier des Ocres, rocher de Saignon) : vélos attachés au parking, visite <b>à pied</b> — c\u2019est prévu dans le déroulé.</li>'
+  +'<li>Itinéraires 100 % compatibles VTC : routes goudronnées + véloroute du Calavon. <b>La véloroute est goudronnée sur tout son tracé</b> (Robion → Apt → D48 vers Castellet), en voie verte sans voiture sauf ~2 km au lieu-dit Le Chêne et ~500 m aux Beaumettes, à Coustellet et avenue des Genêts à Apt.</li>'
+  +'<li>Ne pas suivre les raccourcis « VTT » proposés par les GPS/applis entre villages (chemins caillouteux fréquents dans les Monts de Vaucluse) : rester sur le tracé routier ou le balisage officiel.</li>'
+  +'<li>Sur les sites (Colorado, sentier des Ocres, rocher de Saignon) : vélos attachés au parking, visite <b>à pied</b> — l\u2019accès aux sites ocriers est de toute façon interdit à vélo.</li>'
   +'<li>Pression pneus côté haut de la plage (≈ 3,5–4 bars) : meilleur rendement sur goudron avec les sacoches de pique-nique.</li>'
+  +'</ul></div>'
+  +'<div class="card"><h3>Itinéraires officiels & GPX</h3><ul class="plain">'
+  +'<li><b>J1 :</b> boucle balisée n°13 « Les Ocres à vélo » (51 km, pastilles orange/blanc, liaisons de raccourci en ocre jaune). L\u2019appli gratuite « Ocres à vélo » du Parc du Luberon ajoute audio-guides et quizz.</li>'
+  +'<li><b>J3 :</b> Bonnieux, Lacoste et Ménerbes sont sur la grande boucle balisée « Autour du Luberon » (V863) — panneaux bleus dans le sens horaire, orange en anti-horaire.</li>'
+  +'<li>Traces GPX officielles téléchargeables gratuitement sur <b>veloloisirprovence.com</b> — à charger la veille sur un ou deux téléphones du groupe en secours du balisage.</li>'
   +'</ul></div>'
   +'<div class="card"><h3>Batteries</h3><ul class="plain">'
   +'<li>Charge complète chaque soir à l\u2019Airbnb (multiprise + rallonge à prévoir).</li>'
