@@ -228,7 +228,7 @@ footer{
 <script>
 'use strict';
 /* =========================================================
-   Étoile du Luberon — PWA · v1.8.0
+   Étoile du Luberon — PWA · v1.9.0
    Base : Saint-Saturnin-lès-Apt (43.943, 5.383 · alt. 420 m)
    Modes : normal (~50 km/j) et court (~25 km/j)
    ========================================================= */
@@ -266,20 +266,20 @@ var DATA = [
       prof:[[0,420],[4,375],[9,400],[13,385],[18,505],[22,600],[29,250],[35,270],[42,340],[48,300],[60,420]]}
   },
   court:{
-    name:'Roussillon & Gargas', dist:'22 km', dplus:'300 m', selle:'1 h 45', effort:'\u2248 3 h 30',
-    desc:'<b>Petite boucle des ocres :</b> base \u2192 D227 en balcon \u2192 Roussillon (sentier des Ocres + pique-nique) \u2192 D104 \u2192 Gargas (Mines de Bruoux en option) \u2192 retour. Le Colorado proven\u00e7al reste accessible en voiture l\u2019apr\u00e8s-midi (20 min).',
-    pois:[[43.900,5.2915,'Sentier des Ocres \u2014 35 min \u00e0 pied'],[43.911,5.357,'Mines de Bruoux \u2014 visite guid\u00e9e (option)']],
-    pts:[[43.9395,5.3790],[43.9390,5.3700],[43.9375,5.3600],[43.9355,5.3520],[43.9330,5.3440],[43.9300,5.3360],[43.9270,5.3280],[43.9235,5.3210],[43.9195,5.3140],[43.9150,5.3070],[43.9105,5.3010],[43.9060,5.2960],[43.9020,5.2930],[43.9018,5.2990],[43.9010,5.3060],[43.9000,5.3130],[43.9000,5.3200],[43.9008,5.3270],[43.9022,5.3340],[43.9040,5.3410],[43.9052,5.3480],[43.9060,5.3555],[43.9105,5.3600],[43.9155,5.3640],[43.9205,5.3680],[43.9255,5.3710],[43.9305,5.3740],[43.9355,5.3765],[43.9395,5.3790]],
-    prof:[[0,420],[4,350],[8,310],[11,340],[14,290],[17,270],[19,300],[22,420]],
+    name:'Colorado proven\u00e7al', dist:'23 km', dplus:'280 m', selle:'1 h 45', effort:'\u2248 3 h 30',
+    desc:'<b>Aller-retour au Colorado par Villars :</b> base \u2192 D179 \u2192 Villars \u2192 Rustrel \u2192 parking du Colorado (marche du Sahara + pique-nique sur site) \u2192 retour par le m\u00eame itin\u00e9raire vallonn\u00e9 et tranquille. Roussillon et son sentier des Ocres restent accessibles en voiture en fin d\u2019apr\u00e8s-midi (15 min).',
+    pois:[[43.917,5.4985,'Colorado proven\u00e7al \u2014 marche 45 min \u00e0 1 h']],
+    pts:[[43.9395,5.3790],[43.9420,5.3820],[43.9430,5.3860],[43.9418,5.3900],[43.9400,5.3940],[43.9375,5.3985],[43.9345,5.4030],[43.9310,5.4080],[43.9280,5.4130],[43.9258,5.4165],[43.9250,5.4190],[43.9240,5.4230],[43.9228,5.4280],[43.9222,5.4330],[43.9228,5.4380],[43.9235,5.4430],[43.9238,5.4480],[43.9240,5.4560],[43.9238,5.4620],[43.9240,5.4700],[43.9240,5.4830],[43.9215,5.4870],[43.9195,5.4910],[43.9180,5.4950],[43.9170,5.4985],[43.9180,5.4950],[43.9195,5.4910],[43.9215,5.4870],[43.9240,5.4830],[43.9240,5.4700],[43.9238,5.4620],[43.9240,5.4560],[43.9238,5.4480],[43.9235,5.4430],[43.9228,5.4380],[43.9222,5.4330],[43.9228,5.4280],[43.9240,5.4230],[43.9250,5.4190],[43.9258,5.4165],[43.9280,5.4130],[43.9310,5.4080],[43.9345,5.4030],[43.9375,5.3985],[43.9400,5.3940],[43.9418,5.3900],[43.9430,5.3860],[43.9420,5.3820],[43.9395,5.3790]],
+    prof:[[0,420],[3,380],[5,395],[8,390],[11,385],[13,400],[15,390],[18,395],[20,380],[23,420]],
     timeline:[
-      {h:'09h30', t:'<b>D\u00e9part Airbnb.</b> D227 en balcon vers le sud-ouest, vue sur les falaises d\u2019ocre d\u00e8s les premiers kilom\u00e8tres.'},
-      {h:'10h15', t:'<b>Roussillon</b> \u2014 v\u00e9los attach\u00e9s sur la place basse.'},
-      {h:'10h30', t:'<b>Sentier des Ocres \u00e0 pied</b> (circuit 35\u201350 min, billet \u2248 3,50 \u20ac), falaises flamboyantes.'},
-      {h:'12h15', t:'<b>Pique-nique \u00e0 Roussillon</b> \u2014 place haute avec vue, puis caf\u00e9 et fl\u00e2nerie dans les ruelles.', pic:true},
-      {h:'14h30', t:'D104 vers Gargas \u2014 arr\u00eat possible aux <b>Mines de Bruoux</b> (visite guid\u00e9e 50 min, r\u00e9server).'},
-      {h:'15h45', t:'Retour tranquille \u00e0 la base. Option voiture vers le Colorado proven\u00e7al pour ceux qui en veulent encore.'}
+      {h:'09h30', t:'<b>D\u00e9part Airbnb.</b> D179 vers Villars, \u00e9chauffement tranquille sur route vallonn\u00e9e.'},
+      {h:'10h20', t:'<b>Rustrel</b> \u2014 travers\u00e9e du village puis parking du Colorado, v\u00e9los attach\u00e9s.'},
+      {h:'10h30', t:'<b>Marche du circuit du Sahara</b> (45 min \u00e0 1 h, sable ocre, pr\u00e9voir eau et chaussures ferm\u00e9es).'},
+      {h:'12h00', t:'<b>Pique-nique sur site</b> \u2014 aire ombrag\u00e9e du Colorado ou placette de Rustrel.', pic:true},
+      {h:'13h45', t:'Retour par Villars au m\u00eame rythme, pause caf\u00e9 au village.'},
+      {h:'15h15', t:'Arriv\u00e9e \u00e0 la base. Option voiture : Roussillon et son sentier des Ocres (15 min) pour la lumi\u00e8re de fin de journ\u00e9e.'}
     ]
-  },
+    },
   timeline:[
     {h:'09h00', t:'<b>D\u00e9part Airbnb.</b> Travers\u00e9e du village puis D179 vers Villars, \u00e9chauffement tranquille.'},
     {h:'09h50', t:'<b>Rustrel \u2014 Colorado proven\u00e7al.</b> V\u00e9los au parking, marche du circuit du Sahara (45 min \u00e0 1 h, sable ocre, pr\u00e9voir eau).'},
