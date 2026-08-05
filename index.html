@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Étoile du Luberon — 3 jours VAE</title>
 <meta name="description" content="Itinéraire vélo électrique 3 jours en étoile depuis Saint-Saturnin-lès-Apt — 30 sept au 2 oct 2026">
-<meta name="theme-color" content="#08252e">
+<meta name="theme-color" content="#08252e" id="meta-theme">
+<script>try{if(localStorage.getItem('luberon-theme')==='light'){document.documentElement.setAttribute('data-theme','light');}}catch(e){}</script>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -245,6 +246,33 @@ footer{
   .stats{grid-template-columns:repeat(2,1fr)}
   .map{height:290px}
 }
+/* ---------- ligne version + thème ---------- */
+.topline{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px}
+.ver{
+  font-family:'Spline Sans Mono',monospace; font-size:.7rem; letter-spacing:.1em;
+  color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:4px 10px;
+}
+#theme-toggle{
+  border:1px solid var(--line); background:var(--deep2); color:var(--ink);
+  width:38px; height:38px; border-radius:50%; cursor:pointer; font-size:1.05rem;
+  display:flex; align-items:center; justify-content:center; transition:.2s;
+}
+#theme-toggle:active{transform:scale(.92)}
+
+/* ---------- mode clair ---------- */
+[data-theme="light"]{
+  --deep:#f4efe6; --deep2:#ffffff; --panel:#ece5d8; --line:#d8cfbc;
+  --aqua:#0c7a6d; --gold:#a8720f; --ocre:#b45f22; --sage:#4d7a3f;
+  --ink:#15292e; --muted:#5c6f6b; --danger:#b7402c;
+}
+[data-theme="light"] header{background:linear-gradient(180deg,#efe7d8 0%,var(--deep) 100%)}
+[data-theme="light"] nav.tabs{background:rgba(244,239,230,.94)}
+[data-theme="light"] .leaflet-container{background:#dfe8e6}
+[data-theme="light"] .vlab{background:rgba(255,255,255,.92)!important; border-color:var(--line)!important; color:var(--ink)!important}
+[data-theme="light"] .tile-warn{background:rgba(255,255,255,.94); color:var(--muted)}
+[data-theme="light"] .stat b{color:var(--ink)}
+[data-theme="light"] .badge{background:rgba(12,122,109,.08)}
+
 @media (prefers-reduced-motion:reduce){
   *{animation:none!important;transition:none!important}
   html{scroll-behavior:auto}
@@ -255,6 +283,10 @@ footer{
 
 <header>
   <div class="wrap">
+    <div class="topline">
+      <span class="ver" id="app-version">v2.3.0</span>
+      <button id="theme-toggle" title="Basculer clair / sombre" aria-label="Basculer entre mode clair et mode sombre">☀️</button>
+    </div>
     <div class="eyebrow">Saint-Saturnin-lès-Apt · Luberon · Vaucluse</div>
     <h1>Étoile du Luberon<br><span class="gold">3 jours · vélo électrique</span></h1>
     <p class="subline">Mardi 30 septembre → jeudi 2 octobre 2026 · 8 cyclistes (60+) · base Airbnb, retour chaque soir · pique-niques le midi · distance réglable de 20 à 50 km par jour.</p>
@@ -277,7 +309,7 @@ footer{
 <script>
 'use strict';
 /* =========================================================
-   Étoile du Luberon — PWA · v2.2.0
+   Étoile du Luberon — PWA · v2.3.0
    Base : 62 chemin de la Fontaine de Guby, Saint-Saturnin-lès-Apt
    Curseur global + curseurs par jour (20→50 km) ·
    Routage BRouter (profil trekking) avec cache et repli schématique
@@ -1121,6 +1153,28 @@ mainEl.addEventListener('change', function(ev){
 });
 
 buildAll();
+
+/* ---------- bascule clair / sombre ---------- */
+(function(){
+  var btn = document.getElementById('theme-toggle');
+  var meta = document.getElementById('meta-theme');
+  function apply(theme){
+    if(theme==='light'){ document.documentElement.setAttribute('data-theme','light'); }
+    else{ document.documentElement.removeAttribute('data-theme'); }
+    if(btn){ btn.textContent = theme==='light' ? '\ud83c\udf19' : '\u2600\ufe0f'; }
+    if(meta){ meta.setAttribute('content', theme==='light' ? '#f4efe6' : '#08252e'); }
+  }
+  var cur = 'dark';
+  try{ cur = localStorage.getItem('luberon-theme')==='light' ? 'light' : 'dark'; }catch(e){}
+  apply(cur);
+  if(btn){
+    btn.addEventListener('click', function(){
+      cur = (cur==='light') ? 'dark' : 'light';
+      try{ localStorage.setItem('luberon-theme', cur); }catch(e){}
+      apply(cur);
+    });
+  }
+})();
 
 /* service worker — hors-ligne */
 if('serviceWorker' in navigator){
