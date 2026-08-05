@@ -1,10 +1,10 @@
-/* Étoile du Luberon — service worker v2.4.0
+/* Étoile du Luberon — service worker v2.6.0
    - App shell : cache-first (index, manifest, icônes, Leaflet, fonts)
    - Tuiles OSM : network-first avec mise en cache à la volée
      → les zones consultées en ligne restent visibles hors-ligne */
 'use strict';
 
-var VERSION = 'luberon-v2.4.0';
+var VERSION = 'luberon-v2.6.0';
 var SHELL_CACHE = VERSION + '-shell';
 var TILE_CACHE = VERSION + '-tiles';
 var TILE_LIMIT = 400;
@@ -18,6 +18,7 @@ var SHELL = [
   './icon-maskable-512.png',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css',
   'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
   'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Spline+Sans:wght@400;500;600&family=Spline+Sans+Mono:wght@400;500&display=swap'
 ];
 
