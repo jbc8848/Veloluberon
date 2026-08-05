@@ -284,7 +284,7 @@ footer{
 <header>
   <div class="wrap">
     <div class="topline">
-      <span class="ver" id="app-version">v2.3.0</span>
+      <span class="ver" id="app-version">v2.4.0</span>
       <button id="theme-toggle" title="Basculer clair / sombre" aria-label="Basculer entre mode clair et mode sombre">☀️</button>
     </div>
     <div class="eyebrow">Saint-Saturnin-lès-Apt · Luberon · Vaucluse</div>
@@ -309,7 +309,7 @@ footer{
 <script>
 'use strict';
 /* =========================================================
-   Étoile du Luberon — PWA · v2.3.0
+   Étoile du Luberon — PWA · v2.4.0
    Base : 62 chemin de la Fontaine de Guby, Saint-Saturnin-lès-Apt
    Curseur global + curseurs par jour (20→50 km) ·
    Routage BRouter (profil trekking) avec cache et repli schématique
@@ -645,7 +645,7 @@ function sampleN(pts, maxN){
   return out;
 }
 
-function routeKey(day, l){ return 'lubrt2-' + day.id + '-' + l.km; }
+function routeKey(day, l){ return 'lubrt3-' + day.id + '-' + l.km; }
 
 /* distance en mètres (approx. équirectangulaire) */
 function distM(a, b){
@@ -667,16 +667,16 @@ function despur(coords, pois){
     while(i < coords.length){
       var cut = -1;
       var travelled = 0;
-      for(var j = i+2; j < coords.length && j < i+120; j++){
+      for(var j = i+2; j < coords.length && j < i+600; j++){
         travelled += distM(coords[j-1], coords[j]);
-        if(travelled > 1200) break;
-        if(travelled > 60 && distM(coords[i], coords[j]) < 25){
+        if(travelled > 4000) break;
+        if(travelled > 60 && distM(coords[i], coords[j]) < 30){
           var tip = coords[i], td = 0;
           for(var k = i+1; k < j; k++){
             var d = distM(coords[i], coords[k]);
             if(d > td){ td = d; tip = coords[k]; }
           }
-          var nearPoi = pois.some(function(p){ return distM(tip, p) < 150; });
+          var nearPoi = pois.some(function(p){ return distM(tip, p) < 250; });
           if(!nearPoi){ cut = j; }
           break;
         }
@@ -696,20 +696,26 @@ function getRoute(day, l, cb){
     var cached = localStorage.getItem(key);
     if(cached){ cb(JSON.parse(cached), 'cache', null); return; }
   }catch(e){}
-  var wps = sampleN(l.pts, 26).map(function(p){ return p[1].toFixed(5)+','+p[0].toFixed(5); });
+  var wps = sampleN(l.pts, 20).map(function(p){ return p[1].toFixed(5)+','+p[0].toFixed(5); });
   var url = 'https://brouter.de/brouter?lonlats=' + wps.join('|') + '&profile=trekking&alternativeidx=0&format=geojson';
-  fetch(url).then(function(r){
-    if(!r.ok){ throw new Error('http '+r.status); }
-    return r.json();
-  }).then(function(gj){
-    var f = gj && gj.features && gj.features[0];
-    var coords = f.geometry.coordinates.map(function(q){ return [ +q[1].toFixed(5), +q[0].toFixed(5) ]; });
-    coords = despur(coords, l.pois);
-    coords = sampleN(coords, 600);
-    try{ localStorage.setItem(key, JSON.stringify(coords)); }catch(e){}
-    var lenKm = f.properties && f.properties['track-length'] ? Math.round(f.properties['track-length']/1000) : null;
-    cb(coords, 'live', lenKm);
-  }).catch(function(){ cb(null, 'fail', null); });
+  function attempt(remaining){
+    fetch(url).then(function(r){
+      if(!r.ok){ throw new Error('http '+r.status); }
+      return r.json();
+    }).then(function(gj){
+      var f = gj && gj.features && gj.features[0];
+      var coords = f.geometry.coordinates.map(function(q){ return [ +q[1].toFixed(5), +q[0].toFixed(5) ]; });
+      coords = despur(coords, l.pois);
+      coords = sampleN(coords, 600);
+      try{ localStorage.setItem(key, JSON.stringify(coords)); }catch(e){}
+      var lenKm = f.properties && f.properties['track-length'] ? Math.round(f.properties['track-length']/1000) : null;
+      cb(coords, 'live', lenKm);
+    }).catch(function(){
+      if(remaining > 0){ setTimeout(function(){ attempt(remaining-1); }, 1500); }
+      else{ cb(null, 'fail', null); }
+    });
+  }
+  attempt(2);
 }
 
 /* ---------- helpers UI ---------- */
@@ -1052,25 +1058,31 @@ function initOverviewMap(){
     var m = makeMap('map-apercu');
     m._lubId = 'apercu';
     var bounds = null;
-    var pending = DATA.length, refined = 0, failed = 0;
     DATA.forEach(function(day){
       var l = levelFor(day);
       drawTrack(m, 'day-'+day.id, l.pts, DAYCOLORS[day.id], 5);
       addPois(m, l.pois);
       var b = L.polyline(l.pts).getBounds();
       bounds = bounds ? bounds.extend(b) : L.latLngBounds(b.getSouthWest(), b.getNorthEast());
+    });
+    /* affinage séquentiel : une requête à la fois, le serveur refuse les rafales */
+    var refined = 0, failed = 0;
+    (function next(idx){
+      if(idx >= DATA.length){
+        setStatus('rtstatus-apercu', failed===0
+          ? 'Trac\u00e9s rout\u00e9s BRouter \u2014 suivent les routes et la v\u00e9loroute.'
+          : (refined>0 ? 'Trac\u00e9s partiellement rout\u00e9s ('+refined+'/3) \u2014 recharger en ligne pour le reste.'
+                       : 'Trac\u00e9s sch\u00e9matiques (routeur indisponible \u2014 recharger en ligne).'));
+        return;
+      }
+      var day = DATA[idx];
+      var l = levelFor(day);
       getRoute(day, l, function(coords){
-        pending--;
         if(coords && maps.apercu){ drawTrack(m, 'day-'+day.id, coords, DAYCOLORS[day.id], 5); refined++; }
         else if(!coords){ failed++; }
-        if(pending===0){
-          setStatus('rtstatus-apercu', failed===0
-            ? 'Trac\u00e9s affin\u00e9s par routage BRouter \u2014 suivent les routes et la v\u00e9loroute.'
-            : (refined>0 ? 'Trac\u00e9s partiellement affin\u00e9s ('+refined+'/3) \u2014 r\u00e9essayer en ligne pour le reste.'
-                         : 'Trac\u00e9s sch\u00e9matiques (routeur indisponible \u2014 r\u00e9essayer en ligne).'));
-        }
+        setTimeout(function(){ next(idx+1); }, 400);
       });
-    });
+    })(0);
     if(bounds){ m.fitBounds(bounds, {padding:[26,26]}); }
     maps.apercu = m;
   }catch(e){
