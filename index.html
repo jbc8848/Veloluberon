@@ -177,6 +177,19 @@ p{line-height:1.55; font-size:.93rem}
   box-shadow:none!important;
 }
 .vlab::before{display:none!important}
+.locate-btn{font-size:15px; line-height:26px; text-align:center; text-decoration:none}
+.locate-btn.on{background:#4a9df0!important; }
+.loc-dot{
+  width:16px; height:16px; border-radius:50%;
+  background:#4a9df0; border:3px solid #fff;
+  box-shadow:0 0 0 0 rgba(74,157,240,.55);
+  animation:locpulse 2s infinite;
+}
+@keyframes locpulse{
+  0%{box-shadow:0 0 0 0 rgba(74,157,240,.55)}
+  70%{box-shadow:0 0 0 14px rgba(74,157,240,0)}
+  100%{box-shadow:0 0 0 0 rgba(74,157,240,0)}
+}
 .tile-warn{
   position:absolute; z-index:800; left:10px; right:10px; bottom:10px;
   background:rgba(8,37,46,.9); border:1px solid var(--line); border-radius:10px;
@@ -264,7 +277,7 @@ footer{
 <script>
 'use strict';
 /* =========================================================
-   Étoile du Luberon — PWA · v2.1.0
+   Étoile du Luberon — PWA · v2.2.0
    Base : 62 chemin de la Fontaine de Guby, Saint-Saturnin-lès-Apt
    Curseur global + curseurs par jour (20→50 km) ·
    Routage BRouter (profil trekking) avec cache et repli schématique
@@ -600,7 +613,50 @@ function sampleN(pts, maxN){
   return out;
 }
 
-function routeKey(day, l){ return 'lubrt-' + day.id + '-' + l.km; }
+function routeKey(day, l){ return 'lubrt2-' + day.id + '-' + l.km; }
+
+/* distance en mètres (approx. équirectangulaire) */
+function distM(a, b){
+  var lat = (a[0]+b[0])/2 * Math.PI/180;
+  var dy = (b[0]-a[0]) * 111320;
+  var dx = (b[1]-a[1]) * 111320 * Math.cos(lat);
+  return Math.sqrt(dx*dx + dy*dy);
+}
+
+/* Supprime les antennes (allers-retours courts) créées par des waypoints
+   légèrement hors route. Préserve les A/R volontaires : une antenne dont
+   la pointe est proche d'un POI (Sénanque, Colorado…) n'est pas coupée. */
+function despur(coords, pois){
+  pois = pois || [];
+  var changed = true, pass = 0;
+  while(changed && pass < 3){
+    changed = false; pass++;
+    var out = [], i = 0;
+    while(i < coords.length){
+      var cut = -1;
+      var travelled = 0;
+      for(var j = i+2; j < coords.length && j < i+120; j++){
+        travelled += distM(coords[j-1], coords[j]);
+        if(travelled > 1200) break;
+        if(travelled > 60 && distM(coords[i], coords[j]) < 25){
+          var tip = coords[i], td = 0;
+          for(var k = i+1; k < j; k++){
+            var d = distM(coords[i], coords[k]);
+            if(d > td){ td = d; tip = coords[k]; }
+          }
+          var nearPoi = pois.some(function(p){ return distM(tip, p) < 150; });
+          if(!nearPoi){ cut = j; }
+          break;
+        }
+      }
+      out.push(coords[i]);
+      if(cut > -1){ i = cut; changed = true; }
+      else{ i++; }
+    }
+    coords = out;
+  }
+  return coords;
+}
 
 function getRoute(day, l, cb){
   var key = routeKey(day, l);
@@ -616,6 +672,7 @@ function getRoute(day, l, cb){
   }).then(function(gj){
     var f = gj && gj.features && gj.features[0];
     var coords = f.geometry.coordinates.map(function(q){ return [ +q[1].toFixed(5), +q[0].toFixed(5) ]; });
+    coords = despur(coords, l.pois);
     coords = sampleN(coords, 600);
     try{ localStorage.setItem(key, JSON.stringify(coords)); }catch(e){}
     var lenKm = f.properties && f.properties['track-length'] ? Math.round(f.properties['track-length']/1000) : null;
@@ -854,7 +911,58 @@ function makeMap(elId){
   });
   L.marker(BASE, {icon: baseIcon(), title:'Base Airbnb'}).addTo(m).bindPopup(BASE_POPUP);
   m._tracks = {};
+  addLocateControl(m);
   return m;
+}
+
+/* ---------- position GPS en temps réel ---------- */
+function addLocateControl(m){
+  var btn = L.control({position:'topleft'});
+  btn.onAdd = function(){
+    var div = L.DomUtil.create('div', 'leaflet-bar');
+    var a = L.DomUtil.create('a', 'locate-btn', div);
+    a.href = '#'; a.title = 'Ma position GPS'; a.setAttribute('role','button');
+    a.innerHTML = '\ud83d\udccd';
+    L.DomEvent.on(a, 'click', function(ev){
+      L.DomEvent.stop(ev);
+      if(m._locating){ stopLocate(m, a); } else { startLocate(m, a); }
+    });
+    return div;
+  };
+  btn.addTo(m);
+}
+
+function startLocate(m, a){
+  m._locating = true;
+  a.classList.add('on');
+  m.on('locationfound', onLoc);
+  m.on('locationerror', onLocErr);
+  m.locate({watch:true, enableHighAccuracy:true, setView:false});
+  function onLoc(e){
+    if(!m._locating) return;
+    if(!m._locDot){
+      m._locDot = L.marker(e.latlng, {icon: L.divIcon({className:'', html:'<div class="loc-dot"></div>', iconSize:[18,18], iconAnchor:[9,9]}), interactive:false}).addTo(m);
+      m._locCircle = L.circle(e.latlng, {radius:e.accuracy, color:'#4a9df0', weight:1, fillColor:'#4a9df0', fillOpacity:.12, interactive:false}).addTo(m);
+      m.setView(e.latlng, Math.max(m.getZoom(), 14));
+    }else{
+      m._locDot.setLatLng(e.latlng);
+      m._locCircle.setLatLng(e.latlng).setRadius(e.accuracy);
+    }
+  }
+  function onLocErr(){
+    stopLocate(m, a);
+    alert('Position indisponible : autoriser la localisation dans le navigateur (HTTPS requis).');
+  }
+  m._locHandlers = {f:onLoc, e:onLocErr};
+}
+
+function stopLocate(m, a){
+  m._locating = false;
+  a.classList.remove('on');
+  m.stopLocate();
+  if(m._locHandlers){ m.off('locationfound', m._locHandlers.f); m.off('locationerror', m._locHandlers.e); }
+  if(m._locDot){ try{ m.removeLayer(m._locDot); }catch(e){} m._locDot = null; }
+  if(m._locCircle){ try{ m.removeLayer(m._locCircle); }catch(e){} m._locCircle = null; }
 }
 
 function drawTrack(m, key, pts, color, nArrows){
@@ -880,7 +988,7 @@ function refineTrack(m, day, l, statusId, nArrows){
     if(!maps[m._lubId]){ return; } /* carte détruite entre-temps */
     drawTrack(m, 'day-'+day.id, coords, DAYCOLORS[day.id], nArrows);
     var extra = lenKm ? ' \u00b7 ' + lenKm + ' km rout\u00e9s' : '';
-    setStatus(statusId, 'Trac\u00e9 affin\u00e9 par routage BRouter \u2014 suit les routes et la v\u00e9loroute' + extra + (srcType==='cache' ? ' (m\u00e9moire locale)' : '') + '.');
+    setStatus(statusId, 'Trac\u00e9 rout\u00e9 BRouter (antennes parasites filtr\u00e9es) \u2014 suit les routes et la v\u00e9loroute' + extra + (srcType==='cache' ? ' (m\u00e9moire locale)' : '') + '.');
   });
 }
 
