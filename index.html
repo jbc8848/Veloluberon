@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Étoile du Luberon — 3 jours VAE</title>
+<meta name="description" content="Itinéraire vélo électrique 3 jours en étoile depuis Saint-Saturnin-lès-Apt — 30 sept au 2 oct 2026">
+<meta name="theme-color" content="#08252e">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Spline+Sans:wght@400;500;600&family=Spline+Sans+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+:root{
+  --deep:#08252e; --deep2:#0c313d; --panel:#10394a; --line:#1c4a5c;
+  --aqua:#6fd6c9; --gold:#f0b860; --ocre:#d98a4e; --sage:#9fc48f;
+  --ink:#eaf4f2; --muted:#8fb3ad; --danger:#e58a7a;
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Spline Sans',system-ui,sans-serif;
+  background:var(--deep); color:var(--ink);
+  min-height:100vh; padding-bottom:90px;
+  -webkit-tap-highlight-color:transparent;
+}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px}
+
+/* ---------- header ---------- */
+header{
+  padding:26px 0 18px;
+  background:linear-gradient(180deg,#0a2b36 0%,var(--deep) 100%);
+  border-bottom:1px solid var(--line);
+}
+.eyebrow{
+  font-family:'Spline Sans Mono',monospace; font-size:.72rem; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--aqua); margin-bottom:8px;
+}
+h1{
+  font-family:'Bricolage Grotesque',sans-serif; font-weight:800;
+  font-size:clamp(1.7rem,6vw,2.6rem); line-height:1.05; letter-spacing:-.01em;
+}
+h1 .gold{color:var(--gold)}
+.subline{color:var(--muted); font-size:.95rem; margin-top:10px; line-height:1.5}
+.badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.badge{
+  font-family:'Spline Sans Mono',monospace; font-size:.72rem;
+  border:1px solid var(--line); border-radius:999px; padding:5px 11px;
+  color:var(--aqua); background:rgba(111,214,201,.06);
+}
+
+/* ---------- tabs ---------- */
+nav.tabs{
+  position:fixed; bottom:0; left:0; right:0; z-index:1000;
+  background:rgba(8,37,46,.92); backdrop-filter:blur(10px);
+  border-top:1px solid var(--line);
+  display:flex; justify-content:center; gap:4px; padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+}
+nav.tabs button{
+  flex:1; max-width:200px; border:none; cursor:pointer;
+  background:transparent; color:var(--muted);
+  font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:.85rem;
+  padding:10px 6px; border-radius:12px; transition:.2s;
+}
+nav.tabs button .d{display:block;font-family:'Spline Sans Mono',monospace;font-weight:400;font-size:.62rem;margin-top:2px;letter-spacing:.05em}
+nav.tabs button.on{background:var(--panel); color:var(--gold)}
+
+/* ---------- sections / cards ---------- */
+section.day{display:none; padding-top:20px}
+section.day.on{display:block; animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+.card{
+  background:var(--deep2); border:1px solid var(--line); border-radius:var(--r);
+  padding:16px; margin-bottom:16px;
+}
+h2{
+  font-family:'Bricolage Grotesque',sans-serif; font-weight:800;
+  font-size:1.35rem; line-height:1.15;
+}
+h2 small{display:block;font-family:'Spline Sans Mono',monospace;font-weight:400;font-size:.72rem;color:var(--aqua);letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
+h3{
+  font-family:'Bricolage Grotesque',sans-serif; font-weight:600; font-size:1rem;
+  color:var(--gold); margin-bottom:10px;
+}
+p{line-height:1.55; font-size:.93rem}
+.muted{color:var(--muted)}
+
+/* stats */
+.stats{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:14px}
+.stat{
+  background:var(--panel); border-radius:10px; padding:10px 6px; text-align:center;
+}
+.stat b{
+  display:block; font-family:'Spline Sans Mono',monospace; font-weight:500;
+  font-size:1.02rem; color:var(--ink);
+}
+.stat span{font-size:.62rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted)}
+
+/* variant switcher */
+.variants{display:flex; gap:6px; margin:14px 0 0}
+.variants button{
+  flex:1; border:1px solid var(--line); background:transparent; color:var(--muted);
+  font-family:'Spline Sans',sans-serif; font-weight:600; font-size:.8rem;
+  padding:9px 4px; border-radius:10px; cursor:pointer; transition:.2s;
+}
+.variants button.on{border-color:var(--aqua); color:var(--aqua); background:rgba(111,214,201,.08)}
+.variant-desc{margin-top:12px; font-size:.88rem; line-height:1.5; color:var(--muted)}
+.variant-desc b{color:var(--ink)}
+
+/* map */
+.map{height:340px; border-radius:var(--r); border:1px solid var(--line); overflow:hidden}
+.leaflet-container{background:#0a2b36; font:inherit}
+.vlab{
+  background:rgba(8,37,46,.85)!important; border:1px solid var(--line)!important;
+  color:var(--ink)!important; font-family:'Spline Sans Mono',monospace!important;
+  font-size:.62rem!important; padding:2px 6px!important; border-radius:6px!important;
+  box-shadow:none!important;
+}
+.vlab::before{display:none!important}
+.tile-warn{
+  position:absolute; z-index:800; left:10px; right:10px; bottom:10px;
+  background:rgba(8,37,46,.9); border:1px solid var(--line); border-radius:10px;
+  padding:8px 12px; font-family:'Spline Sans Mono',monospace; font-size:.68rem;
+  color:var(--muted); line-height:1.4;
+}
+.map-note{font-family:'Spline Sans Mono',monospace; font-size:.68rem; color:var(--muted); margin-top:8px; line-height:1.5}
+
+/* profile */
+.profile svg{width:100%; height:auto; display:block}
+
+/* timeline */
+.tl{list-style:none}
+.tl li{
+  display:grid; grid-template-columns:64px 1fr; gap:12px;
+  padding:9px 0; border-bottom:1px dashed var(--line);
+}
+.tl li:last-child{border-bottom:none}
+.tl .h{
+  font-family:'Spline Sans Mono',monospace; font-size:.8rem; color:var(--aqua);
+  padding-top:1px; white-space:nowrap;
+}
+.tl .t{font-size:.9rem; line-height:1.45}
+.tl .t b{color:var(--gold); font-weight:600}
+.tl li.pic .h{color:var(--gold)}
+
+/* météo */
+.meteo{display:grid; gap:10px}
+.mrow{
+  display:grid; grid-template-columns:38px 1fr; gap:10px; align-items:start;
+  background:var(--panel); border-radius:10px; padding:11px 12px;
+}
+.mrow .ico{font-size:1.3rem; line-height:1.2}
+.mrow .txt{font-size:.87rem; line-height:1.5}
+.mrow .txt b{color:var(--aqua)}
+
+/* pratique */
+ul.plain{list-style:none}
+ul.plain li{
+  padding:8px 0 8px 22px; position:relative; font-size:.9rem; line-height:1.5;
+  border-bottom:1px dashed var(--line);
+}
+ul.plain li:last-child{border:none}
+ul.plain li::before{content:"◆"; position:absolute; left:2px; color:var(--gold); font-size:.6rem; top:12px}
+.warn{border-left:3px solid var(--danger); background:rgba(229,138,122,.07); border-radius:0 10px 10px 0; padding:11px 13px; font-size:.87rem; line-height:1.5; margin-top:12px}
+.warn b{color:var(--danger)}
+
+footer{
+  text-align:center; padding:30px 16px 10px;
+  font-family:'Spline Sans Mono',monospace; font-size:.68rem; color:var(--muted);
+}
+@media (max-width:480px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .map{height:290px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow">Saint-Saturnin-lès-Apt · Luberon · Vaucluse</div>
+    <h1>Étoile du Luberon<br><span class="gold">3 jours · vélo électrique</span></h1>
+    <p class="subline">Mardi 30 septembre → jeudi 2 octobre 2026 · 8 cyclistes (60+) · base Airbnb, retour chaque soir · pique-niques le midi · en selle ≈ 9 h – 17 h.</p>
+    <div class="badges">
+      <span class="badge">VTC électriques</span>
+      <span class="badge">100 % goudron / piste roulante</span>
+      <span class="badge">≈ 45–55 km / jour</span>
+      <span class="badge">Effort ≈ 6 h / jour</span>
+      <span class="badge">Alt. facile + longue</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="main"></main>
+
+<nav class="tabs" id="tabs"></nav>
+
+<footer>Étoile du Luberon · v1.4.0 · tracés indicatifs — vérifier l'état des routes sur place</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+'use strict';
+/* =========================================================
+   Étoile du Luberon — PWA mono-fichier · v1.4.0
+   Base : Saint-Saturnin-lès-Apt (43.943, 5.383 · alt. 420 m)
+   ========================================================= */
+
+var BASE = [43.943, 5.383];
+
+var DATA = [
+{
+  id:'j1', tab:'Jour 1', date:'Mar 30 sept',
+  title:'Le pays des Ocres', sub:'Jour 1 · Mardi 30 septembre',
+  intro:'Boucle est : Colorado provençal le matin, sentier des Ocres de Roussillon l\u2019après-midi. Deux courtes marches sur sites (prévoir chaussures fermées).',
+  labels:[[43.925,5.418,'Villars'],[43.924,5.484,'Rustrel'],[43.916,5.500,'Colorado'],[43.898,5.470,'Caseneuve'],[43.876,5.397,'Apt'],[43.906,5.354,'Gargas'],[43.902,5.293,'Roussillon'],[43.915,5.247,'Joucas']],
+  variants:{
+    main:{label:'Principale', dist:'52 km', dplus:'700 m', selle:'3 h 45', effort:'≈ 6 h',
+      desc:'<b>St-Saturnin → Villars → Rustrel (Colorado) → Caseneuve → Apt → Gargas → Roussillon → Joucas → retour.</b> Routes secondaires calmes (D179, D22, D209, D104), une seule vraie montée vers Caseneuve.',
+      pts:[[43.943,5.383],[43.938,5.402],[43.925,5.418],[43.922,5.452],[43.924,5.484],[43.916,5.500],[43.909,5.512],[43.898,5.470],[43.884,5.430],[43.876,5.397],[43.891,5.372],[43.906,5.354],[43.903,5.320],[43.902,5.293],[43.909,5.268],[43.915,5.247],[43.928,5.290],[43.936,5.335],[43.943,5.383]],
+      prof:[[0,420],[4,375],[9,400],[12,385],[16,505],[20,600],[26,250],[31,270],[38,340],[43,300],[52,420]]},
+    easy:{label:'Facile', dist:'41 km', dplus:'430 m', selle:'3 h', effort:'≈ 5 h',
+      desc:'<b>Sans la montée de Caseneuve :</b> depuis Rustrel, retour direct sur Apt par la D22 (descente douce), puis véloroute du Calavon jusqu\u2019à Gargas et Roussillon. Idéal si le groupe veut garder des jambes pour les marches sur les ocres.',
+      pts:[[43.943,5.383],[43.938,5.402],[43.925,5.418],[43.922,5.452],[43.924,5.484],[43.916,5.500],[43.910,5.470],[43.888,5.420],[43.876,5.397],[43.891,5.372],[43.906,5.354],[43.903,5.320],[43.902,5.293],[43.909,5.268],[43.915,5.247],[43.928,5.290],[43.936,5.335],[43.943,5.383]],
+      prof:[[0,420],[4,375],[9,400],[12,385],[17,330],[21,250],[26,270],[31,340],[35,300],[41,420]]},
+    long:{label:'Longue', dist:'64 km', dplus:'920 m', selle:'4 h 30', effort:'≈ 6 h 45',
+      desc:'<b>Extension Viens :</b> après le Colorado, montée jusqu\u2019au village perché de Viens (belvédère sur les Monts de Vaucluse), puis Caseneuve et la suite du parcours principal. Pour un groupe qui roule bien — batteries en mode éco le matin.',
+      pts:[[43.943,5.383],[43.938,5.402],[43.925,5.418],[43.922,5.452],[43.924,5.484],[43.916,5.500],[43.918,5.530],[43.905,5.555],[43.898,5.520],[43.898,5.470],[43.884,5.430],[43.876,5.397],[43.891,5.372],[43.906,5.354],[43.903,5.320],[43.902,5.293],[43.909,5.268],[43.915,5.247],[43.928,5.290],[43.936,5.335],[43.943,5.383]],
+      prof:[[0,420],[4,375],[9,400],[12,385],[17,600],[22,630],[27,600],[33,250],[38,270],[45,340],[50,300],[64,420]]}
+  },
+  timeline:[
+    {h:'09h00', t:'<b>Départ Airbnb.</b> Descente vers Villars par la D179, échauffement tranquille.'},
+    {h:'09h50', t:'<b>Rustrel — Colorado provençal.</b> Vélos au parking, marche du circuit du Sahara (45 min à 1 h, sable ocre, prévoir eau).'},
+    {h:'11h15', t:'Reprise. Montée régulière vers Caseneuve (mode Tour/Sport conseillé), beau balcon sur la vallée du Calavon.'},
+    {h:'12h00', t:'Descente sur Apt, traversée par la véloroute, remontée douce vers Gargas.'},
+    {h:'12h45', t:'<b>Pique-nique à Roussillon</b> — aire ombragée sous le village ou place haute avec vue.', pic:true},
+    {h:'14h00', t:'<b>Sentier des Ocres</b> (petit circuit 35 min, billet ≈ 3,50 €). Café sur la place ensuite.'},
+    {h:'15h15', t:'Reprise vers Joucas par la D104, village calme en pierres blondes.'},
+    {h:'16h30', t:'Retour à Saint-Saturnin par la D2 — dernière montée douce, arrivée avant 17 h.'}
+  ],
+  meteo:[
+    {i:'🌬️', t:'<b>Mistral fort :</b> inverser le sens de la boucle (Roussillon le matin, Colorado l\u2019après-midi) pour rentrer vent dans le dos, et rester en fond de vallée du Calavon entre Apt et Gargas.'},
+    {i:'🌧️', t:'<b>Pluie :</b> les sentiers des ocres deviennent glissants et tachent — remplacer les marches par la véloroute du Calavon (revêtue, plate) : Apt → Pont Julien A/R, cafés à Apt.'},
+    {i:'🌡️', t:'<b>Chaleur inhabituelle :</b> partir à 8 h 30, faire le Colorado en tout premier (à l\u2019ombre le matin), sieste prolongée à Roussillon.'}
+  ]
+},
+{
+  id:'j2', tab:'Jour 2', date:'Mer 1 oct',
+  title:'Gordes, Sénanque & les Monts de Vaucluse', sub:'Jour 2 · Mercredi 1er octobre',
+  intro:'La journée la plus « carte postale » : Gordes en balcon, l\u2019abbaye de Sénanque au creux de sa combe, puis les hauteurs de Murs et la combe de Lioux. C\u2019est aussi la plus vallonnée — l\u2019assistance fait la différence.',
+  labels:[[43.915,5.247,'Joucas'],[43.911,5.199,'Gordes'],[43.928,5.187,'Sénanque'],[43.951,5.240,'Murs'],[43.962,5.262,'Col de Murs'],[43.965,5.302,'Lioux']],
+  variants:{
+    main:{label:'Principale', dist:'46 km', dplus:'850 m', selle:'3 h 45', effort:'≈ 6 h',
+      desc:'<b>St-Saturnin → Joucas → Gordes → Sénanque (A/R) → Murs → col de Murs → combe de Lioux → retour.</b> Attention : la petite route de Sénanque descend fort (passages à 10–12 %) — freiner par à-coups, redescendre à pied si besoin.',
+      pts:[[43.943,5.383],[43.936,5.335],[43.928,5.290],[43.915,5.247],[43.912,5.220],[43.911,5.199],[43.920,5.196],[43.928,5.187],[43.920,5.196],[43.915,5.205],[43.930,5.222],[43.951,5.240],[43.962,5.262],[43.964,5.285],[43.965,5.302],[43.955,5.340],[43.951,5.360],[43.943,5.383]],
+      prof:[[0,420],[5,300],[8,250],[12,370],[15,430],[17,310],[19,430],[24,510],[27,627],[33,420],[37,350],[46,420]]},
+    easy:{label:'Facile', dist:'38 km', dplus:'580 m', selle:'3 h', effort:'≈ 5 h',
+      desc:'<b>Sans l\u2019aller-retour Sénanque :</b> l\u2019abbaye se voit très bien depuis le belvédère de la route de Murs (arrêt photo sans la descente raide). Gordes → Murs direct par la D15, puis même retour par Lioux.',
+      pts:[[43.943,5.383],[43.936,5.335],[43.928,5.290],[43.915,5.247],[43.912,5.220],[43.911,5.199],[43.915,5.205],[43.930,5.222],[43.951,5.240],[43.962,5.262],[43.964,5.285],[43.965,5.302],[43.955,5.340],[43.951,5.360],[43.943,5.383]],
+      prof:[[0,420],[5,300],[8,250],[12,370],[16,450],[19,510],[22,627],[28,420],[32,350],[38,420]]},
+    long:{label:'Longue', dist:'60 km', dplus:'1 050 m', selle:'4 h 45', effort:'≈ 7 h',
+      desc:'<b>Extension Vénasque :</b> depuis Murs, bascule par le col de Murs vers Vénasque (« plus beau village de France », baptistère mérovingien) puis retour par la même crête. +14 km et +200 m — à réserver à un groupe en forme, ou à faire à 4 pendant que les autres flânent à Murs.',
+      pts:[[43.943,5.383],[43.936,5.335],[43.928,5.290],[43.915,5.247],[43.912,5.220],[43.911,5.199],[43.920,5.196],[43.928,5.187],[43.920,5.196],[43.915,5.205],[43.930,5.222],[43.951,5.240],[43.965,5.220],[43.985,5.190],[43.996,5.147],[43.985,5.190],[43.965,5.220],[43.951,5.240],[43.962,5.262],[43.964,5.285],[43.965,5.302],[43.955,5.340],[43.951,5.360],[43.943,5.383]],
+      prof:[[0,420],[5,300],[8,250],[12,370],[15,430],[17,310],[19,430],[24,510],[28,627],[33,320],[38,627],[41,510],[47,420],[51,350],[60,420]]}
+  },
+  timeline:[
+    {h:'09h00', t:'<b>Départ Airbnb.</b> Descente plaisir vers Joucas puis les Gorges de Véroncle en contrebas.'},
+    {h:'10h15', t:'<b>Gordes.</b> Montée en lacets (assistance Sport), visite du village en balcon — château, calades, point de vue.'},
+    {h:'11h15', t:'<b>Abbaye de Sénanque</b> — descente prudente dans la combe, photo de l\u2019abbaye cistercienne (extérieurs libres). Remontée tranquille en mode Turbo.'},
+    {h:'12h45', t:'<b>Pique-nique à Murs</b> — placette du village ou table à l\u2019entrée nord, calme garanti.', pic:true},
+    {h:'14h00', t:'<b>Col de Murs (627 m)</b> — point culminant du séjour, vue sur le Ventoux.'},
+    {h:'14h45', t:'Grande descente par la <b>combe de Lioux</b>, falaise de la Madeleine spectaculaire à main gauche.'},
+    {h:'15h30', t:'Lioux, hameau confidentiel au pied de la falaise — pause café/gourde.'},
+    {h:'16h15', t:'Retour à Saint-Saturnin par les Croagnes, petites routes agricoles goudronnées (ne pas suivre les pistes proposées en raccourci par le GPS).'}
+  ],
+  meteo:[
+    {i:'🌬️', t:'<b>Mistral fort :</b> le plateau de Murs et le col sont très exposés — basculer sur la <b>boucle basse abritée</b> : Joucas → Gordes → Saint-Pantaléon (chapelle romane) → Goult (moulin) → retour par la véloroute. ≈ 40 km, 450 m D+.'},
+    {i:'🌧️', t:'<b>Pluie :</b> renoncer à la descente de Sénanque (revêtement glissant). Gordes + Goult + Saint-Pantaléon en version courte, départ décalé à 10 h 30 si l\u2019averse passe.'},
+    {i:'☁️', t:'<b>Plafond bas :</b> inverser la boucle pour faire Lioux/Murs le matin et garder Gordes pour l\u2019après-midi si ça se dégage (lumière plus belle sur le village en fin de journée).'}
+  ]
+},
+{
+  id:'j3', tab:'Jour 3', date:'Jeu 2 oct',
+  title:'Claparèdes & villages perchés du Sud', sub:'Jour 3 · Jeudi 2 octobre',
+  intro:'Traversée du plateau des Claparèdes (bories et champs de lavande) et chapelet de villages perchés : Saignon, Bonnieux, Lacoste, Goult. Retour tout en douceur par la véloroute du Calavon et le Pont Julien romain.',
+  labels:[[43.876,5.397,'Apt'],[43.863,5.427,'Saignon'],[43.845,5.398,'Claparèdes'],[43.824,5.307,'Bonnieux'],[43.833,5.272,'Lacoste'],[43.862,5.305,'Pont Julien'],[43.863,5.245,'Goult']],
+  variants:{
+    main:{label:'Principale', dist:'55 km', dplus:'750 m', selle:'4 h', effort:'≈ 6 h',
+      desc:'<b>St-Saturnin → Gargas → Apt → Saignon → plateau des Claparèdes → Bonnieux → Lacoste → Pont Julien → Goult → véloroute → retour.</b> Une seule montée sérieuse (Apt → Saignon), le reste ondule agréablement.',
+      pts:[[43.943,5.383],[43.925,5.370],[43.906,5.354],[43.890,5.375],[43.876,5.397],[43.868,5.415],[43.863,5.427],[43.852,5.415],[43.845,5.398],[43.840,5.375],[43.833,5.345],[43.824,5.307],[43.833,5.272],[43.850,5.290],[43.862,5.305],[43.863,5.245],[43.878,5.260],[43.895,5.300],[43.920,5.340],[43.943,5.383]],
+      prof:[[0,420],[6,270],[11,240],[15,470],[20,550],[26,500],[31,425],[36,320],[39,220],[43,250],[48,260],[55,420]]},
+    easy:{label:'Facile', dist:'45 km', dplus:'520 m', selle:'3 h 15', effort:'≈ 5 h',
+      desc:'<b>Sans Saignon ni le plateau :</b> véloroute du Calavon directe d\u2019Apt au Pont Julien (plat, revêtu, sans voiture), puis montée unique à Bonnieux, Lacoste, Goult et retour. La journée la plus contemplative.',
+      pts:[[43.943,5.383],[43.925,5.370],[43.906,5.354],[43.890,5.375],[43.876,5.397],[43.870,5.360],[43.865,5.330],[43.862,5.305],[43.824,5.307],[43.833,5.272],[43.850,5.290],[43.862,5.305],[43.863,5.245],[43.878,5.260],[43.895,5.300],[43.920,5.340],[43.943,5.383]],
+      prof:[[0,420],[6,270],[11,240],[17,225],[20,220],[25,425],[29,320],[32,220],[36,250],[41,260],[45,420]]},
+    long:{label:'Longue', dist:'65 km', dplus:'860 m', selle:'4 h 45', effort:'≈ 7 h',
+      desc:'<b>Extension Ménerbes :</b> après Lacoste, poursuivre en balcon jusqu\u2019à Ménerbes (village de Peter Mayle, maison Dora Maar), retour par la D103 et la véloroute. +10 km faciles, mais journée bien remplie — vérifier les batteries au pique-nique.',
+      pts:[[43.943,5.383],[43.925,5.370],[43.906,5.354],[43.890,5.375],[43.876,5.397],[43.868,5.415],[43.863,5.427],[43.852,5.415],[43.845,5.398],[43.840,5.375],[43.833,5.345],[43.824,5.307],[43.833,5.272],[43.832,5.240],[43.832,5.206],[43.845,5.225],[43.863,5.245],[43.878,5.260],[43.895,5.300],[43.920,5.340],[43.943,5.383]],
+      prof:[[0,420],[6,270],[11,240],[15,470],[20,550],[26,500],[31,425],[36,320],[41,230],[44,220],[48,250],[53,250],[58,260],[65,420]]}
+  },
+  timeline:[
+    {h:'09h00', t:'<b>Départ Airbnb.</b> Descente sur Gargas puis Apt par petites routes et véloroute.'},
+    {h:'09h45', t:'<b>Apt</b> — ravitaillement pique-nique au marché couvert ou boulangerie (fruits confits, spécialité locale !).'},
+    {h:'10h30', t:'<b>Montée de Saignon</b> (3 km réguliers, mode Sport), montée au rocher de Bellevue : panorama sur tout le pays d\u2019Apt.'},
+    {h:'11h30', t:'<b>Plateau des Claparèdes</b> — bories, murets de pierre sèche, champs de lavande (coupée en octobre, mais le paysage reste superbe).'},
+    {h:'12h30', t:'<b>Pique-nique à Bonnieux</b> — terrasses hautes près de la vieille église, vue sur Lacoste et le Ventoux.', pic:true},
+    {h:'14h00', t:'Visite de Bonnieux puis descente vers <b>Lacoste</b> — château du marquis de Sade, ruelles caladées.'},
+    {h:'15h15', t:'<b>Pont Julien</b> — pont romain de 2 000 ans sur le Calavon, qu\u2019on traverse à vélo.'},
+    {h:'15h45', t:'<b>Goult</b> — moulin de Jérusalem, village hors des foules. Dernier café du séjour.'},
+    {h:'16h45', t:'Retour à Saint-Saturnin par la véloroute puis la D104 — arrivée pour l\u2019apéro de clôture.'}
+  ],
+  meteo:[
+    {i:'🌬️', t:'<b>Mistral fort :</b> le plateau des Claparèdes est balayé — prendre la variante facile par la véloroute (encaissée, abritée) et grimper seulement à Bonnieux.'},
+    {i:'🌧️', t:'<b>Pluie :</b> journée « voie verte » : véloroute du Calavon A/R jusqu\u2019au Pont Julien (100 % revêtue, sans voiture), musées à Apt (Maison du Parc du Luberon), cave à Bonnieux si accalmie.'},
+    {i:'🌡️', t:'<b>Chaleur :</b> plateau tôt le matin, sieste longue à Bonnieux, retour par la véloroute ombragée en fin d\u2019après-midi.'}
+  ]
+},
+{
+  id:'infos', tab:'Pratique', date:'',
+  practical:true
+}
+];
+
+/* ---------- rendu ---------- */
+var mainEl = document.getElementById('main');
+var tabsEl = document.getElementById('tabs');
+var maps = {};      // id -> L.Map
+var layers = {};    // id -> L.LayerGroup
+
+function statHtml(v){
+  return '<div class="stats">'
+    +'<div class="stat"><b>'+v.dist+'</b><span>Distance</span></div>'
+    +'<div class="stat"><b>'+v.dplus+'</b><span>Dénivelé +</span></div>'
+    +'<div class="stat"><b>'+v.selle+'</b><span>En selle</span></div>'
+    +'<div class="stat"><b>'+v.effort+'</b><span>Effort total</span></div>'
+    +'</div>';
+}
+
+function profileSvg(prof){
+  var W=700, H=190, padL=44, padR=14, padT=16, padB=30;
+  var maxKm=prof[prof.length-1][0];
+  var alts=prof.map(function(p){return p[1];});
+  var minA=Math.floor(Math.min.apply(null,alts)/50)*50;
+  var maxA=Math.ceil(Math.max.apply(null,alts)/50)*50;
+  if(maxA-minA<200){maxA=minA+200;}
+  function X(km){return padL+(km/maxKm)*(W-padL-padR);}
+  function Y(a){return padT+(1-(a-minA)/(maxA-minA))*(H-padT-padB);}
+  var d='M'+X(prof[0][0]).toFixed(1)+','+Y(prof[0][1]).toFixed(1);
+  for(var i=1;i<prof.length;i++){
+    var x0=X(prof[i-1][0]), y0=Y(prof[i-1][1]), x1=X(prof[i][0]), y1=Y(prof[i][1]);
+    var cx=(x0+x1)/2;
+    d+=' C'+cx.toFixed(1)+','+y0.toFixed(1)+' '+cx.toFixed(1)+','+y1.toFixed(1)+' '+x1.toFixed(1)+','+y1.toFixed(1);
+  }
+  var area=d+' L'+X(maxKm).toFixed(1)+','+(H-padB)+' L'+X(0).toFixed(1)+','+(H-padB)+' Z';
+  var grid='';
+  for(var a=minA;a<=maxA;a+=100){
+    grid+='<line x1="'+padL+'" y1="'+Y(a).toFixed(1)+'" x2="'+(W-padR)+'" y2="'+Y(a).toFixed(1)+'" stroke="#1c4a5c" stroke-width="1" stroke-dasharray="3 4"/>'
+        +'<text x="'+(padL-6)+'" y="'+(Y(a)+3).toFixed(1)+'" text-anchor="end" font-size="10" fill="#8fb3ad" font-family="Spline Sans Mono,monospace">'+a+'</text>';
+  }
+  var ticks='';
+  var step=maxKm>50?10:5;
+  for(var k=0;k<=maxKm;k+=step){
+    ticks+='<text x="'+X(k).toFixed(1)+'" y="'+(H-10)+'" text-anchor="middle" font-size="10" fill="#8fb3ad" font-family="Spline Sans Mono,monospace">'+k+'</text>';
+  }
+  return '<svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Profil de dénivelé">'
+    +'<defs><linearGradient id="g'+Math.round(Math.random()*1e6)+'" x1="0" y1="0" x2="0" y2="1">'
+    +'<stop offset="0" stop-color="#f0b860" stop-opacity=".45"/><stop offset="1" stop-color="#f0b860" stop-opacity=".03"/></linearGradient></defs>'
+    +grid
+    +'<path d="'+area+'" fill="#f0b86022"/>'
+    +'<path d="'+d+'" fill="none" stroke="#f0b860" stroke-width="2.5" stroke-linecap="round"/>'
+    +ticks
+    +'<text x="'+(W/2)+'" y="'+(H-0)+'" text-anchor="middle" font-size="9" fill="#8fb3ad" font-family="Spline Sans Mono,monospace">km</text>'
+    +'</svg>';
+}
+
+function dayHtml(day){
+  var v = day.variants.main;
+  var h = '<div class="card">'
+    +'<h2><small>'+day.sub+'</small>'+day.title+'</h2>'
+    +'<p class="muted" style="margin-top:8px">'+day.intro+'</p>'
+    +'<div class="variants" id="var-'+day.id+'">'
+    +'<button data-v="main" class="on">Principale</button>'
+    +'<button data-v="easy">Facile</button>'
+    +'<button data-v="long">Longue</button>'
+    +'</div>'
+    +'<div id="stats-'+day.id+'">'+statHtml(v)+'</div>'
+    +'<div class="variant-desc" id="desc-'+day.id+'">'+v.desc+'</div>'
+    +'</div>';
+  h += '<div class="card"><h3>Carte</h3><div class="map" id="map-'+day.id+'"></div>'
+    +'<p class="map-note">★ = base Airbnb · trait plein = variante sélectionnée · tracé indicatif, à affiner sur GPS/Komoot avant le départ. Tous les itinéraires sont compatibles VTC : routes goudronnées et véloroute — aucun sentier ni piste caillouteuse.</p></div>';
+  h += '<div class="card"><h3>Profil de dénivelé</h3><div class="profile" id="prof-'+day.id+'">'+profileSvg(v.prof)+'</div></div>';
+  h += '<div class="card"><h3>Déroulé de la journée</h3><ul class="tl">';
+  day.timeline.forEach(function(s){
+    h+='<li'+(s.pic?' class="pic"':'')+'><span class="h">'+s.h+'</span><span class="t">'+s.t+'</span></li>';
+  });
+  h+='</ul></div>';
+  h += '<div class="card"><h3>Variantes météo</h3><div class="meteo">';
+  day.meteo.forEach(function(m){
+    h+='<div class="mrow"><span class="ico">'+m.i+'</span><span class="txt">'+m.t+'</span></div>';
+  });
+  h+='</div></div>';
+  return h;
+}
+
+function practicalHtml(){
+  return '<div class="card"><h2><small>Infos pratiques</small>Bien vivre les 3 jours</h2></div>'
+  +'<div class="card"><h3>Rythme & groupe (8 personnes, 60+)</h3><ul class="plain">'
+  +'<li>Rouler en <b>deux groupes de 4</b> sur les routes étroites, regroupement à chaque village.</li>'
+  +'<li>Pause toutes les 1 h – 1 h 15, même courte : boire, s\u2019étirer, vérifier tout le monde.</li>'
+  +'<li>Le plus lent donne le tempo — l\u2019assistance sert à rester ensemble, pas à aller vite.</li>'
+  +'<li>Départ 9 h ± 1 h selon météo, retour visé 16 h 30 – 17 h : de la marge est prévue chaque jour.</li>'
+  +'</ul></div>'
+  +'<div class="card"><h3>VTC électriques & revêtement</h3><ul class="plain">'
+  +'<li>Itinéraires 100 % compatibles VTC : routes goudronnées + véloroute du Calavon. <b>À l\u2019ouest d\u2019Apt la véloroute est revêtue</b> ; à l\u2019est (vers Rustrel/Céreste) elle est en stabilisé bien roulant — OK en VTC par temps sec, préférer la D22 goudronnée si sol détrempé.</li>'
+  +'<li>Ne pas suivre les raccourcis « VTT » proposés par les GPS/applis entre villages (chemins caillouteux fréquents dans les Monts de Vaucluse) : rester sur le tracé routier.</li>'
+  +'<li>Sur les sites (Colorado, sentier des Ocres, rocher de Saignon) : vélos attachés au parking, visite <b>à pied</b> — c\u2019est prévu dans le déroulé.</li>'
+  +'<li>Pression pneus côté haut de la plage (≈ 3,5–4 bars) : meilleur rendement sur goudron avec les sacoches de pique-nique.</li>'
+  +'</ul></div>'
+  +'<div class="card"><h3>Batteries</h3><ul class="plain">'
+  +'<li>Charge complète chaque soir à l\u2019Airbnb (multiprise + rallonge à prévoir).</li>'
+  +'<li>Mode Éco sur le plat et les faux plats, Tour en montée, Turbo réservé aux passages raides (Gordes, Sénanque, Saignon).</li>'
+  +'<li>Aucune étape ne dépasse 65 km : une batterie standard (500 Wh) suffit largement, même en usage généreux.</li>'
+  +'<li>Kit de base : 2 chambres à air (formats du groupe), pompe, multi-outil, attache rapide, gilets si ciel couvert.</li>'
+  +'</ul></div>'
+  +'<div class="card"><h3>Pique-niques</h3><ul class="plain">'
+  +'<li>Ravitaillement le matin : boulangerie/épicerie à Saint-Saturnin, marché couvert d\u2019Apt (J3), ou préparation la veille à l\u2019Airbnb.</li>'
+  +'<li>Spots prévus : Roussillon (J1), Murs (J2), Bonnieux (J3) — toujours une table ou un muret à l\u2019ombre.</li>'
+  +'<li>1,5 L d\u2019eau minimum par personne, fontaines dans la plupart des villages.</li>'
+  +'</ul></div>'
+  +'<div class="card"><h3>À ne pas manquer</h3><ul class="plain">'
+  +'<li><b>Mardi matin :</b> jour de marché à Gordes et Apt (samedi sinon) — vérifier sur place, ça change la circulation dans les villages.</li>'
+  +'<li>Fruits confits d\u2019Apt, fromages de chèvre de Saignon, vins AOC Ventoux/Luberon (dégustation à Bonnieux).</li>'
+  +'<li>Début octobre : lumière dorée, vignes qui rougissent, foules parties — la meilleure période.</li>'
+  +'</ul></div>'
+  +'<div class="warn"><b>Sécurité :</b> casque pour tous, éclairage en état, et prudence particulière dans les <b>descentes de Sénanque et de Gordes</b> (pentes à 10–12 %, virages serrés). En VAE le poids du vélo allonge le freinage : freiner tôt, par à-coups, et ne jamais hésiter à mettre pied à terre. Numéro d\u2019urgence européen : 112.</div>'
+  +'<div class="card" style="margin-top:16px"><h3>Météo — où vérifier</h3><p class="muted">Chaque soir : prévision Météo-France pour « Saint-Saturnin-lès-Apt » + carte des rafales (le mistral se lève vite dans le couloir du Rhône et déborde sur les Monts de Vaucluse). Si rafales annoncées &gt; 50 km/h : basculer d\u2019office sur les variantes abritées indiquées à chaque journée.</p></div>';
+}
+
+/* build */
+DATA.forEach(function(day, idx){
+  var sec = document.createElement('section');
+  sec.className = 'day'+(idx===0?' on':'');
+  sec.id = 'sec-'+day.id;
+  sec.innerHTML = day.practical ? practicalHtml() : dayHtml(day);
+  mainEl.appendChild(sec);
+
+  var b = document.createElement('button');
+  b.innerHTML = day.tab + (day.date?'<span class="d">'+day.date+'</span>':'<span class="d">Conseils</span>');
+  if(idx===0) b.className='on';
+  b.addEventListener('click', function(){ showTab(day.id, b); });
+  tabsEl.appendChild(b);
+});
+
+function showTab(id, btn){
+  document.querySelectorAll('section.day').forEach(function(s){s.classList.remove('on');});
+  document.querySelectorAll('nav.tabs button').forEach(function(x){x.classList.remove('on');});
+  document.getElementById('sec-'+id).classList.add('on');
+  btn.classList.add('on');
+  window.scrollTo(0,0);
+  var day = DATA.find(function(d){return d.id===id;});
+  if(day && !day.practical){ initMap(day); }
+}
+
+/* ---------- cartes ---------- */
+var COLORS = {main:'#f0b860', easy:'#6fd6c9', long:'#d98a4e'};
+
+function initMap(day){
+  if(maps[day.id]){ setTimeout(function(){maps[day.id].invalidateSize();},60); return; }
+  try{
+    var m = L.map('map-'+day.id, {scrollWheelZoom:false, zoomControl:true});
+    var tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 17,
+      attribution: '&copy; OpenStreetMap'
+    }).addTo(m);
+    var warned = false;
+    tiles.on('tileerror', function(){
+      if(warned) return; warned = true;
+      var box = document.getElementById('map-'+day.id);
+      var w = document.createElement('div');
+      w.className = 'tile-warn';
+      w.textContent = 'Fond de carte indisponible (hors-ligne ou réseau bloqué) — le tracé et les villages restent affichés en schéma.';
+      box.appendChild(w);
+      setTimeout(function(){ if(w.parentNode){ w.parentNode.removeChild(w); } }, 7000);
+    });
+    var baseIcon = L.divIcon({
+      className:'',
+      html:'<svg width="34" height="34" viewBox="0 0 34 34"><circle cx="17" cy="17" r="15" fill="#08252e" stroke="#f0b860" stroke-width="2.5"/><path d="M17 7.5 L19.6 13.6 L26.2 14.1 L21.2 18.4 L22.7 24.9 L17 21.4 L11.3 24.9 L12.8 18.4 L7.8 14.1 L14.4 13.6 Z" fill="#f0b860"/></svg>',
+      iconSize:[34,34], iconAnchor:[17,17], popupAnchor:[0,-18]
+    });
+    L.marker(BASE, {icon: baseIcon, title:'Base Airbnb'}).addTo(m)
+      .bindPopup('<b>Saint-Saturnin-lès-Apt</b><br>Base Airbnb · alt. 420 m');
+    (day.labels||[]).forEach(function(lb){
+      L.circleMarker([lb[0],lb[1]], {radius:4, color:'#6fd6c9', weight:2, fillColor:'#08252e', fillOpacity:1})
+        .addTo(m)
+        .bindTooltip(lb[2], {permanent:true, direction:'top', offset:[0,-6], className:'vlab'});
+    });
+    layers[day.id] = L.layerGroup().addTo(m);
+    maps[day.id] = m;
+    drawVariant(day, 'main');
+  }catch(e){
+    var el = document.getElementById('map-'+day.id);
+    if(el){ el.innerHTML = '<p style="padding:20px" class="muted">Carte indisponible hors connexion — le déroulé et le profil restent consultables.</p>'; }
+  }
+}
+
+function drawVariant(day, key){
+  var g = layers[day.id]; if(!g) return;
+  g.clearLayers();
+  var v = day.variants[key];
+  ['easy','long','main'].forEach(function(k){
+    if(k===key) return;
+    L.polyline(day.variants[k].pts, {color:COLORS[k], weight:2, opacity:.28, dashArray:'5 7'}).addTo(g);
+  });
+  var line = L.polyline(v.pts, {color:COLORS[key], weight:4.5, opacity:.95}).addTo(g);
+  maps[day.id].fitBounds(line.getBounds(), {padding:[24,24]});
+}
+
+/* variant switch */
+document.querySelectorAll('.variants').forEach(function(box){
+  box.addEventListener('click', function(ev){
+    var btn = ev.target.closest('button'); if(!btn) return;
+    var key = btn.getAttribute('data-v');
+    var dayId = box.id.replace('var-','');
+    var day = DATA.find(function(d){return d.id===dayId;});
+    box.querySelectorAll('button').forEach(function(x){x.classList.remove('on');});
+    btn.classList.add('on');
+    var v = day.variants[key];
+    document.getElementById('stats-'+dayId).innerHTML = statHtml(v);
+    document.getElementById('desc-'+dayId).innerHTML = v.desc;
+    document.getElementById('prof-'+dayId).innerHTML = profileSvg(v.prof);
+    if(maps[dayId]){ drawVariant(day, key); }
+  });
+});
+
+/* init première carte */
+initMap(DATA[0]);
+
+/* service worker — hors-ligne */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    try{
+      navigator.serviceWorker.register('./sw.js').catch(function(){});
+    }catch(e){}
+  });
+}
+</script>
+</body>
+</html>
