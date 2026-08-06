@@ -332,7 +332,7 @@ footer{
 <header>
   <div class="wrap">
     <div class="topline">
-      <span class="ver" id="app-version">v3.1.0</span>
+      <span class="ver" id="app-version">v3.2.0</span>
       <button id="theme-toggle" title="Basculer clair / sombre" aria-label="Basculer entre mode clair et mode sombre">☀️</button>
     </div>
     <div class="eyebrow">Saint-Saturnin-lès-Apt · Luberon · Vaucluse</div>
@@ -358,7 +358,7 @@ footer{
 <script>
 'use strict';
 /* =========================================================
-   Étoile du Luberon — PWA · v3.1.0
+   Étoile du Luberon — PWA · v3.2.0
    Base : 62 chemin de la Fontaine de Guby, Saint-Saturnin-lès-Apt
    Curseur global + curseurs par jour (20→50 km) ·
    Routage BRouter (profil trekking) avec cache et repli schématique
@@ -366,7 +366,7 @@ footer{
 
 var BASE = [43.9395, 5.3790];
 var BASE_POPUP = '<b>Base Airbnb</b><br>62 chemin de la Fontaine de Guby<br>Saint-Saturnin-lès-Apt · alt. \u2248 415 m';
-var DAYCOLORS = {j1:'#f0b860', j2:'#6fd6c9', j3:'#d98a4e'};
+var DAYCOLORS = {j1:'#f0b860', j2:'#6fd6c9', j3:'#e0679a'};
 
 var TARGETS = {j1:25, j2:25, j3:25};
 try{
@@ -1317,7 +1317,9 @@ function stopLocate(m, a){
 function drawTrack(m, key, pts, color, nArrows){
   if(m._tracks[key]){ try{ m.removeLayer(m._tracks[key]); }catch(e){} }
   var g = L.layerGroup().addTo(m);
-  L.polyline(pts, {color:color, weight:4.5, opacity:.95}).addTo(g);
+  /* liseré sombre sous le trait : lisibilité sur tout fond de carte */
+  L.polyline(pts, {color:'#08252e', weight:7.5, opacity:.85}).addTo(g);
+  L.polyline(pts, {color:color, weight:4, opacity:1}).addTo(g);
   addArrows(g, pts, color, nArrows);
   m._tracks[key] = g;
   return g;
