@@ -224,6 +224,20 @@ body.noscroll{overflow:hidden}
 [data-theme="light"] .guidon-bar{background:rgba(255,255,255,.94)}
 [data-theme="light"] .guidon-bar .gstep{color:var(--ink)}
 [data-theme="light"] .guidon-bar .gexit{background:rgba(0,0,0,.05); color:var(--ink)}
+.off-toggle{
+  display:flex; align-items:flex-start; gap:10px; margin-top:14px;
+  background:var(--panel); border-radius:12px; padding:12px 14px; cursor:pointer;
+  font-size:.88rem; line-height:1.45;
+}
+.off-toggle input{width:20px; height:20px; margin-top:1px; accent-color:var(--gold); flex:none; cursor:pointer}
+.off-toggle i{color:var(--muted); font-style:normal; font-size:.8em}
+.off-chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+.off-chip{
+  display:inline-flex; align-items:center; gap:7px;
+  font-family:'Spline Sans Mono',monospace; font-size:.68rem; color:var(--muted);
+  border:1px solid var(--line); border-radius:999px; padding:5px 11px;
+}
+.off-chip .sw{width:16px; height:4px; border-radius:2px}
 .qr-box{background:#fff; padding:14px; border-radius:14px; width:max-content; margin:14px auto 4px}
 .tile-warn{
   position:absolute; z-index:800; left:10px; right:10px; bottom:10px;
@@ -318,7 +332,7 @@ footer{
 <header>
   <div class="wrap">
     <div class="topline">
-      <span class="ver" id="app-version">v2.6.0</span>
+      <span class="ver" id="app-version">v3.0.0</span>
       <button id="theme-toggle" title="Basculer clair / sombre" aria-label="Basculer entre mode clair et mode sombre">☀️</button>
     </div>
     <div class="eyebrow">Saint-Saturnin-lès-Apt · Luberon · Vaucluse</div>
@@ -344,7 +358,7 @@ footer{
 <script>
 'use strict';
 /* =========================================================
-   Étoile du Luberon — PWA · v2.6.0
+   Étoile du Luberon — PWA · v3.0.0
    Base : 62 chemin de la Fontaine de Guby, Saint-Saturnin-lès-Apt
    Curseur global + curseurs par jour (20→50 km) ·
    Routage BRouter (profil trekking) avec cache et repli schématique
@@ -381,6 +395,22 @@ function saveTargets(){
     try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}
   }
 })();
+
+/* ---------- itinéraires officiels balisés (surimpression) ---------- */
+var SHOW_OFF = false;
+try{ SHOW_OFF = localStorage.getItem('lubofficial') === '1'; }catch(e){}
+
+var OFFICIALS = [
+  {id:'veloroute', name:'V\u00e9loroute du Calavon (V86)', color:'#6fbf73',
+   desc:'Voie verte goudronn\u00e9e sur l\u2019ancienne voie ferr\u00e9e, de Robion \u00e0 la D48 \u00e0 l\u2019est d\u2019Apt.',
+   wps:[[43.8460,5.1180],[43.8520,5.1420],[43.8550,5.1650],[43.8575,5.1880],[43.8580,5.2120],[43.8600,5.2350],[43.8615,5.2600],[43.8622,5.2840],[43.8622,5.3060],[43.8645,5.3300],[43.8680,5.3550],[43.8730,5.3800],[43.8770,5.3990],[43.8760,5.4250],[43.8740,5.4550],[43.8720,5.4850]]},
+  {id:'ocres13', name:'Boucle balis\u00e9e n\u00b013 \u2014 Les Ocres \u00e0 v\u00e9lo', color:'#e07fb0',
+   desc:'La boucle officielle de 51 km : Apt, Rustrel, Villars, Saint-Saturnin, Roussillon, Gargas. Pastilles orange/blanc.',
+   wps:[[43.8770,5.3990],[43.8900,5.4350],[43.9050,5.4700],[43.9170,5.4985],[43.9240,5.4830],[43.9250,5.4190],[43.9395,5.3790],[43.9300,5.3440],[43.9150,5.3070],[43.9020,5.2930],[43.9000,5.3200],[43.9060,5.3555],[43.8900,5.3750],[43.8770,5.3990]]},
+  {id:'v863', name:'Autour du Luberon (V863) \u2014 tron\u00e7on local', color:'#a48ae0',
+   desc:'Segment local de la grande boucle balis\u00e9e de ~240 km : M\u00e9nerbes, Lacoste, Bonnieux, Apt, Saignon. Panneaux bleus (horaire) / orange (anti-horaire).',
+   wps:[[43.8320,5.2060],[43.8340,5.2715],[43.8250,5.3090],[43.8380,5.3450],[43.8520,5.3700],[43.8660,5.3880],[43.8770,5.3990],[43.8635,5.4280]]}
+];
 
 /* ---------- segments de routes (réutilisés entre niveaux) ---------- */
 function rev(a){ return a.slice().reverse(); }
@@ -427,18 +457,24 @@ var SEG = {
 };
 
 var POI = {
-  colorado:[43.917,5.4985,'Colorado proven\u00e7al (Rustrel)','Anciennes carri\u00e8res d\u2019ocre aux allures de Far West : chemin\u00e9es de f\u00e9es, sables orange, falaises stratifi\u00e9es. Circuit du Sahara 45 min (facile) ou Belv\u00e9d\u00e8res 1 h 30. Entr\u00e9e v\u00e9lo/pi\u00e9ton 2\u20133 \u20ac/pers. (parking + plan + appli incluse). En octobre : 9 h 30 \u2013 17 h 30.'],
-  ocres:[43.900,5.2915,'Sentier des Ocres (Roussillon)','Falaises flamboyantes du pourpre \u00e0 l\u2019or, en plein c\u0153ur du village. Deux boucles am\u00e9nag\u00e9es de 30 ou 50 min \u00e0 pied. 3,50 \u20ac/pers. \u2014 chaussures ferm\u00e9es obligatoires, l\u2019ocre tache !'],
-  bruoux:[43.911,5.357,'Mines de Bruoux (Gargas)','Galeries d\u2019ocre monumentales creus\u00e9es \u00e0 la main d\u00e8s 1848 \u2014 des cath\u00e9drales souterraines de 15 m de haut. Visite guid\u00e9e 1 h, 10 \u20ac/pers., <b>uniquement sur r\u00e9servation</b> au 04 90 06 22 59. 10 \u00b0C dans les galeries : pr\u00e9voir une couche.'],
-  okhra:[43.8985,5.3070,'\u00f4khra \u2014 Conservatoire des ocres','L\u2019ancienne usine Mathieu devenue \u00e9comus\u00e9e de la couleur : fours, bassins de d\u00e9cantation, boutique de pigments. Sur la D104 juste avant Roussillon. Billet coupl\u00e9 possible avec les Mines de Bruoux (17 \u20ac les deux).'],
-  gordes:[43.911,5.1995,'Village de Gordes','Le village-balcon le plus photographi\u00e9 de Provence : ch\u00e2teau Renaissance, calades, panorama immense depuis la route de Cavaillon. Fl\u00e2nerie libre et gratuite \u2014 compter 45 min \u00e0 pied.'],
-  senanque:[43.928,5.1875,'Abbaye de S\u00e9nanque','Abbaye cistercienne du XIIe si\u00e8cle au fond de sa combe, toujours habit\u00e9e par des moines. Ext\u00e9rieurs et photo libres ; visite int\u00e9rieure 8 \u20ac/pers. (guid\u00e9e ou libre avec HistoPad). Silence demand\u00e9.'],
-  bories:[43.9067,5.1815,'Village des Bories','Hameau de cabanes en pierre s\u00e8che class\u00e9 Monument historique : bergeries, fours \u00e0 pain, enclos \u2014 des igloos proven\u00e7aux du XVIIe si\u00e8cle. D\u00e9tour d\u2019environ 2 km depuis Gordes. 8 \u20ac/pers., visite libre ~30 min.'],
-  madeleine:[43.9660,5.3055,'Falaise de la Madeleine (Lioux)','Muraille calcaire de 100 m qui surgit \u00e0 la verticale du hameau \u2014 arr\u00eat photo au pied, rapaces fr\u00e9quents au sommet. Gratuit.'],
-  pj:[43.862,5.3050,'Pont Julien','Pont romain de 2 000 ans sur la voie Domitienne, trois arches intactes sur le Calavon \u2014 et on le traverse encore \u00e0 v\u00e9lo. Acc\u00e8s libre, coins ombrag\u00e9s pour le pique-nique.'],
-  bonnieux:[43.8245,5.3075,'Vieux Bonnieux','Village \u00e9tag\u00e9 sur son \u00e9peron : ruelles calad\u00e9es jusqu\u2019\u00e0 la vieille \u00e9glise haute (86 marches), vue sur Lacoste et le Ventoux. Gratuit.'],
-  lacoste:[43.834,5.2710,'Ch\u00e2teau de Lacoste','Ruines du ch\u00e2teau du marquis de Sade, restaur\u00e9es par Pierre Cardin \u2014 mont\u00e9e \u00e0 pied par les calades, vue plongeante sur la vall\u00e9e. Village et ext\u00e9rieurs libres.'],
-  saignon:[43.8635,5.4290,'Rocher de Bellevue (Saignon)','Escalier taill\u00e9 dans le rocher jusqu\u2019\u00e0 la table d\u2019orientation : panorama \u00e0 360\u00b0 sur tout le pays d\u2019Apt, du Ventoux au Luberon. 15 min \u00e0 pied, gratuit.']
+  /* type 'w' = balade \u00e0 pied \u00b7 type 's' = site touristique / visite */
+  colorado:[43.917,5.4985,'Colorado proven\u00e7al (Rustrel)','Anciennes carri\u00e8res d\u2019ocre aux allures de Far West : chemin\u00e9es de f\u00e9es, sables orange, falaises stratifi\u00e9es. Circuit du Sahara 45 min (facile) ou Belv\u00e9d\u00e8res 1 h 30. Entr\u00e9e v\u00e9lo/pi\u00e9ton 2\u20133 \u20ac/pers. (parking + plan + appli incluse). En octobre : 9 h 30 \u2013 17 h 30.','w'],
+  ocres:[43.900,5.2915,'Sentier des Ocres (Roussillon)','Falaises flamboyantes du pourpre \u00e0 l\u2019or, en plein c\u0153ur du village. Deux boucles am\u00e9nag\u00e9es de 30 ou 50 min \u00e0 pied. 3,50 \u20ac/pers. \u2014 chaussures ferm\u00e9es obligatoires, l\u2019ocre tache !','w'],
+  stsat:[43.9460,5.3838,'Moulins & ch\u00e2teau de St-Saturnin','\u00c0 500 m du g\u00eete ! Moulins \u00e0 vent, forteresse, chapelle castrale des XIe\u2013XIIe si\u00e8cles et barrage insolite \u2014 balade de 30\u201345 min au-dessus du village, vue \u00e9poustouflante. Gratuit. Id\u00e9al le soir d\u2019arriv\u00e9e ou en cl\u00f4ture de journ\u00e9e.','w'],
+  bruoux:[43.911,5.357,'Mines de Bruoux (Gargas)','Galeries d\u2019ocre monumentales creus\u00e9es \u00e0 la main d\u00e8s 1848 \u2014 des cath\u00e9drales souterraines de 15 m de haut. Visite guid\u00e9e 1 h, 10 \u20ac/pers., <b>uniquement sur r\u00e9servation</b> au 04 90 06 22 59. 10 \u00b0C dans les galeries : pr\u00e9voir une couche.','s'],
+  okhra:[43.8985,5.3070,'\u00f4khra \u2014 Conservatoire des ocres','L\u2019ancienne usine Mathieu devenue \u00e9comus\u00e9e de la couleur : fours, bassins de d\u00e9cantation, boutique de pigments. Sur la D104 juste avant Roussillon. Billet coupl\u00e9 possible avec les Mines de Bruoux (17 \u20ac les deux).','s'],
+  gordes:[43.911,5.1995,'Village de Gordes','Le village-balcon le plus photographi\u00e9 de Provence : ch\u00e2teau Renaissance, calades, panorama immense depuis la route de Cavaillon. Fl\u00e2nerie libre et gratuite \u2014 compter 45 min \u00e0 pied.','s'],
+  firmin:[43.9104,5.2003,'Caves du Palais Saint-Firmin','L\u2019envers souterrain de Gordes : moulin \u00e0 huile, citernes, silos et m\u00eame une chapelle sur 3 niveaux troglodytes (Monuments historiques). Entr\u00e9e entre l\u2019\u00e9glise et le belv\u00e9d\u00e8re. 6 \u20ac/pers., audioguide inclus, ~40 min au frais.','s'],
+  senanque:[43.928,5.1875,'Abbaye de S\u00e9nanque','Abbaye cistercienne du XIIe si\u00e8cle au fond de sa combe, toujours habit\u00e9e par des moines. Ext\u00e9rieurs et photo libres ; visite int\u00e9rieure 8 \u20ac/pers. (guid\u00e9e ou libre avec HistoPad). Silence demand\u00e9.','s'],
+  bories:[43.9067,5.1815,'Village des Bories','Hameau de cabanes en pierre s\u00e8che class\u00e9 Monument historique : bergeries, fours \u00e0 pain, enclos \u2014 des igloos proven\u00e7aux du XVIIe si\u00e8cle. D\u00e9tour d\u2019environ 2 km depuis Gordes. 8 \u20ac/pers., visite libre ~30 min.','s'],
+  joucasart:[43.9142,5.2472,'Labyrinthe d\u2019art (Joucas)','Sculptures monumentales diss\u00e9min\u00e9es dans les ruelles calad\u00e9es du village, pos\u00e9es par l\u2019artiste du village et son \u00e9pouse \u2014 des guides immobiles qu\u2019on rencontre au d\u00e9tour des vues. Gratuit, en fl\u00e2nant pendant la pause caf\u00e9.','s'],
+  madeleine:[43.9660,5.3055,'Falaise de la Madeleine (Lioux)','Muraille calcaire de 100 m qui surgit \u00e0 la verticale du hameau \u2014 arr\u00eat photo au pied, rapaces fr\u00e9quents au sommet. Gratuit.','w'],
+  pj:[43.862,5.3050,'Pont Julien','Pont romain de 2 000 ans sur la voie Domitienne, trois arches intactes sur le Calavon \u2014 et on le traverse encore \u00e0 v\u00e9lo. Acc\u00e8s libre, coins ombrag\u00e9s pour le pique-nique.','s'],
+  jerusalem:[43.8640,5.2455,'Moulin de J\u00e9rusalem (Goult)','Moulin \u00e0 vent du XVIIe si\u00e8cle qui a moulu le bl\u00e9 jusqu\u2019au d\u00e9but du XXe \u2014 mont\u00e9e \u00e0 pied par les ruelles, belv\u00e9d\u00e8re sur la vall\u00e9e du Calavon, terrasses de culture restaur\u00e9es juste au-dessus. Gratuit (int\u00e9rieur ferm\u00e9 hors Journ\u00e9es du patrimoine).','w'],
+  stpant:[43.888,5.2295,'Chapelle de Saint-Pantal\u00e9on','Minuscule chapelle romane et sa n\u00e9cropole rupestre creus\u00e9e \u00e0 m\u00eame le rocher, dont des tombes d\u2019enfants \u2014 \u00e9mouvant et unique. Gratuit, 10 min d\u2019arr\u00eat.','s'],
+  bonnieux:[43.8245,5.3075,'Vieux Bonnieux','Village \u00e9tag\u00e9 sur son \u00e9peron : ruelles calad\u00e9es jusqu\u2019\u00e0 la vieille \u00e9glise haute (86 marches), vue sur Lacoste et le Ventoux. Gratuit.','s'],
+  lacoste:[43.834,5.2710,'Ch\u00e2teau de Lacoste','Ruines du ch\u00e2teau du marquis de Sade, restaur\u00e9es par Pierre Cardin \u2014 mont\u00e9e \u00e0 pied par les calades, vue plongeante sur la vall\u00e9e. Village et ext\u00e9rieurs libres.','s'],
+  saignon:[43.8635,5.4290,'Rocher de Bellevue (Saignon)','Escalier taill\u00e9 dans le rocher jusqu\u2019\u00e0 la table d\u2019orientation : panorama \u00e0 360\u00b0 sur tout le pays d\u2019Apt, du Ventoux au Luberon. 15 min \u00e0 pied, gratuit.','w']
 };
 
 var LBL = {
@@ -456,11 +492,11 @@ var DATA = [
   id:'j1', tab:'J1', date:'30 sept', theme:'Le pays des Ocres', sub:'Jour 1 · Mardi 30 septembre',
   intro:'Boucle <b>est</b> autour des sites ocriers. Le curseur fait grandir la journ\u00e9e : Colorado seul, puis Gargas, Roussillon, Joucas, jusqu\u2019\u00e0 la boucle balis\u00e9e n\u00b013 compl\u00e8te.',
   levels:[
-    {km:23, dplus:'280 m', selle:'1 h 45', effort:'\u2248 3 h 30', name:'Colorado proven\u00e7al',
+    {km:25, dplus:'280 m', selle:'2 h', effort:'\u2248 3 h 45', name:'Colorado proven\u00e7al',
       desc:'<b>Aller-retour au Colorado par Villars :</b> marche du Sahara + pique-nique sur site, retour par le m\u00eame itin\u00e9raire vallonn\u00e9. Roussillon reste accessible en voiture en fin d\u2019apr\u00e8s-midi (15 min).',
       pts:P(SEG.d179_colorado, rev(SEG.d179_colorado)),
       prof:[[0,420],[3,380],[6,395],[9,390],[11,400],[14,390],[17,395],[20,380],[23,420]],
-      pois:[POI.colorado], labels:[LBL.villars, LBL.rustrel],
+      pois:[POI.stsat, POI.colorado], labels:[LBL.villars, LBL.rustrel],
       timeline:[
         {h:'09h30', t:'<b>D\u00e9part Airbnb.</b> D179 vers Villars, \u00e9chauffement tranquille.'},
         {h:'10h20', t:'<b>Rustrel</b> puis parking du Colorado, v\u00e9los attach\u00e9s.'},
@@ -469,11 +505,11 @@ var DATA = [
         {h:'13h45', t:'Retour par Villars, pause caf\u00e9 au village.'},
         {h:'15h15', t:'Arriv\u00e9e \u00e0 la base. Option voiture : Roussillon et son sentier des Ocres pour la lumi\u00e8re du soir.'}
       ]},
-    {km:30, dplus:'340 m', selle:'2 h 15', effort:'\u2248 4 h', name:'Colorado & Gargas',
+    {km:31, dplus:'340 m', selle:'2 h 20', effort:'\u2248 4 h', name:'Colorado & Gargas',
       desc:'<b>Boucle par la liaison ocre jaune :</b> Colorado le matin, puis liaison balis\u00e9e plein ouest \u00e0 travers les collines d\u2019ocre jusqu\u2019\u00e0 Gargas (Mines de Bruoux en option), remont\u00e9e directe \u00e0 la base.',
       pts:P(SEG.d179_colorado, SEG.liaison_gargas, SEG.gargas_nord),
       prof:[[0,420],[4,380],[8,395],[11,400],[13,390],[17,340],[21,300],[25,270],[27,300],[30,420]],
-      pois:[POI.colorado, POI.bruoux], labels:[LBL.villars, LBL.rustrel, LBL.gargas],
+      pois:[POI.stsat, POI.colorado, POI.bruoux], labels:[LBL.villars, LBL.rustrel, LBL.gargas],
       timeline:[
         {h:'09h30', t:'<b>D\u00e9part Airbnb.</b> D179 vers Villars et Rustrel.'},
         {h:'10h20', t:'<b>Colorado proven\u00e7al</b> \u2014 marche du Sahara (45 min \u00e0 1 h).'},
@@ -482,11 +518,11 @@ var DATA = [
         {h:'14h45', t:'<b>Gargas</b> \u2014 arr\u00eat possible aux Mines de Bruoux (visite 50 min, r\u00e9server).'},
         {h:'16h00', t:'Remont\u00e9e directe \u00e0 la base par les petites routes du nord.'}
       ]},
-    {km:38, dplus:'380 m', selle:'2 h 45', effort:'\u2248 5 h', name:'Colorado, Gargas & Roussillon',
+    {km:41, dplus:'380 m', selle:'3 h', effort:'\u2248 5 h 15', name:'Colorado, Gargas & Roussillon',
       desc:'<b>Les deux sites ocriers dans la m\u00eame journ\u00e9e :</b> Colorado le matin, liaison vers Gargas, pique-nique et sentier des Ocres \u00e0 Roussillon l\u2019apr\u00e8s-midi, retour par la D227 en balcon.',
       pts:P(SEG.d179_colorado, SEG.liaison_gargas, SEG.d104_roussillon, SEG.d227_base),
       prof:[[0,420],[5,375],[10,400],[14,385],[19,320],[24,270],[29,340],[33,300],[38,420]],
-      pois:[POI.colorado, POI.bruoux, POI.okhra, POI.ocres], labels:[LBL.villars, LBL.rustrel, LBL.gargas, LBL.roussillon],
+      pois:[POI.stsat, POI.colorado, POI.bruoux, POI.okhra, POI.ocres], labels:[LBL.villars, LBL.rustrel, LBL.gargas, LBL.roussillon],
       timeline:[
         {h:'09h15', t:'<b>D\u00e9part Airbnb.</b> D179 vers Villars et Rustrel.'},
         {h:'10h05', t:'<b>Colorado proven\u00e7al</b> \u2014 marche du Sahara (45 min).'},
@@ -496,11 +532,11 @@ var DATA = [
         {h:'15h30', t:'Retour par la D227 en balcon, Roussillon dans le r\u00e9troviseur.'},
         {h:'16h15', t:'Arriv\u00e9e \u00e0 la base.'}
       ]},
-    {km:43, dplus:'430 m', selle:'3 h 10', effort:'\u2248 5 h 30', name:'Ocres & Joucas',
+    {km:47, dplus:'430 m', selle:'3 h 25', effort:'\u2248 5 h 45', name:'Ocres & Joucas',
       desc:'<b>Comme la boucle 38 km + le crochet de Joucas :</b> apr\u00e8s le sentier des Ocres, descente vers Joucas (village en pierres blondes) avant de remonter \u00e0 la base par la D2.',
       pts:P(SEG.d179_colorado, SEG.liaison_gargas, SEG.d104_roussillon, SEG.roussillon_joucas, rev(SEG.base_joucas)),
       prof:[[0,420],[5,375],[10,400],[14,385],[19,320],[24,270],[29,340],[32,300],[35,300],[43,420]],
-      pois:[POI.colorado, POI.bruoux, POI.okhra, POI.ocres], labels:[LBL.villars, LBL.rustrel, LBL.gargas, LBL.roussillon, LBL.joucas],
+      pois:[POI.stsat, POI.colorado, POI.bruoux, POI.okhra, POI.ocres, POI.joucasart], labels:[LBL.villars, LBL.rustrel, LBL.gargas, LBL.roussillon, LBL.joucas],
       timeline:[
         {h:'09h15', t:'<b>D\u00e9part Airbnb.</b> Villars, Rustrel, Colorado (marche du Sahara).'},
         {h:'11h30', t:'Liaison vers Gargas puis D104.'},
@@ -513,7 +549,7 @@ var DATA = [
       desc:'<b>La boucle officielle \u00ab Les Ocres \u00e0 v\u00e9lo \u00bb int\u00e9grale :</b> Villars, Rustrel, Colorado, descente sur Apt par la D22, Gargas, Roussillon, retour D227. Pastilles n\u00b013 orange sur fond blanc \u2014 navigation sans GPS. Prudence aux travers\u00e9es des D4, D943 et D22.',
       pts:P(SEG.d179_colorado, SEG.colorado_apt, SEG.apt_gargas, SEG.d104_roussillon, SEG.d227_base),
       prof:[[0,420],[5,375],[10,400],[14,385],[20,330],[26,250],[32,270],[38,340],[44,300],[51,420]],
-      pois:[POI.colorado, POI.bruoux, POI.okhra, POI.ocres], labels:[LBL.villars, LBL.rustrel, LBL.apt, LBL.gargas, LBL.roussillon],
+      pois:[POI.stsat, POI.colorado, POI.bruoux, POI.okhra, POI.ocres], labels:[LBL.villars, LBL.rustrel, LBL.apt, LBL.gargas, LBL.roussillon],
       timeline:[
         {h:'09h00', t:'<b>D\u00e9part Airbnb.</b> Travers\u00e9e du village puis D179 vers Villars.'},
         {h:'09h50', t:'<b>Colorado proven\u00e7al</b> \u2014 marche du circuit du Sahara (45 min \u00e0 1 h).'},
@@ -535,11 +571,11 @@ var DATA = [
   id:'j2', tab:'J2', date:'1 oct', theme:'Gordes & les Monts de Vaucluse', sub:'Jour 2 · Mercredi 1er octobre',
   intro:'Boucle <b>nord-ouest</b>. Le curseur fait grandir la journ\u00e9e : Gordes seul, puis S\u00e9nanque, Murs, et jusqu\u2019au col de Murs et la combe de Lioux. La journ\u00e9e la plus vallonn\u00e9e \u2014 l\u2019assistance fait la diff\u00e9rence.',
   levels:[
-    {km:24, dplus:'430 m', selle:'2 h', effort:'\u2248 3 h 30', name:'Gordes par Joucas',
+    {km:33, dplus:'430 m', selle:'2 h 30', effort:'\u2248 4 h', name:'Gordes par Joucas',
       desc:'<b>Le plus beau balcon du Luberon :</b> D2 \u2192 Joucas \u2192 Gordes (visite + pique-nique face au village) \u2192 retour identique. S\u00e9nanque possible en voiture en fin d\u2019apr\u00e8s-midi (10 min).',
       pts:P(SEG.base_joucas, SEG.joucas_gordes, rev(SEG.joucas_gordes), rev(SEG.base_joucas)),
       prof:[[0,420],[5,340],[9,300],[12,370],[15,300],[19,330],[24,420]],
-      pois:[POI.gordes, POI.bories], labels:[LBL.joucas, LBL.gordes],
+      pois:[POI.gordes, POI.firmin, POI.bories, POI.joucasart], labels:[LBL.joucas, LBL.gordes],
       timeline:[
         {h:'09h30', t:'<b>D\u00e9part Airbnb.</b> D2 plein sud-ouest, descente plaisir vers Joucas.'},
         {h:'10h45', t:'<b>Gordes</b> \u2014 mont\u00e9e en lacets (assistance Sport).'},
@@ -548,11 +584,11 @@ var DATA = [
         {h:'14h00', t:'Redescente par le m\u00eame itin\u00e9raire, caf\u00e9 \u00e0 Joucas.'},
         {h:'15h30', t:'Arriv\u00e9e \u00e0 la base. Option voiture : S\u00e9nanque pour la photo du soir.'}
       ]},
-    {km:29, dplus:'560 m', selle:'2 h 30', effort:'\u2248 4 h', name:'Gordes & S\u00e9nanque',
+    {km:39, dplus:'560 m', selle:'3 h', effort:'\u2248 4 h 45', name:'Gordes & S\u00e9nanque',
       desc:'<b>+ l\u2019aller-retour \u00e0 l\u2019abbaye :</b> apr\u00e8s Gordes, descente prudente dans la combe de S\u00e9nanque (passages \u00e0 10\u201312 % \u2014 freiner par \u00e0-coups, pied \u00e0 terre si besoin), remont\u00e9e en Turbo, retour par Joucas.',
       pts:P(SEG.base_joucas, SEG.joucas_gordes, SEG.gordes_senanque, rev(SEG.gordes_senanque), rev(SEG.joucas_gordes), rev(SEG.base_joucas)),
       prof:[[0,420],[5,340],[9,300],[12,370],[14,430],[16,310],[18,430],[20,370],[23,300],[26,330],[29,420]],
-      pois:[POI.gordes, POI.senanque, POI.bories], labels:[LBL.joucas, LBL.gordes, LBL.senanque],
+      pois:[POI.gordes, POI.firmin, POI.senanque, POI.bories, POI.joucasart], labels:[LBL.joucas, LBL.gordes, LBL.senanque],
       timeline:[
         {h:'09h30', t:'<b>D\u00e9part Airbnb.</b> D2 vers Joucas.'},
         {h:'10h45', t:'<b>Gordes</b> \u2014 visite du village en balcon.'},
@@ -561,11 +597,11 @@ var DATA = [
         {h:'15h00', t:'Retour par Joucas, pause caf\u00e9.'},
         {h:'16h15', t:'Arriv\u00e9e \u00e0 la base.'}
       ]},
-    {km:36, dplus:'700 m', selle:'3 h', effort:'\u2248 5 h', name:'Gordes, S\u00e9nanque & Murs',
+    {km:44, dplus:'700 m', selle:'3 h 30', effort:'\u2248 5 h 30', name:'Gordes, S\u00e9nanque & Murs',
       desc:'<b>+ la mont\u00e9e \u00e0 Murs :</b> depuis S\u00e9nanque, D15 en mont\u00e9e r\u00e9guli\u00e8re jusqu\u2019au village de Murs (pique-nique), puis descente directe sur Joucas par la petite route de la combe.',
       pts:P(SEG.base_joucas, SEG.joucas_gordes, SEG.gordes_senanque, SEG.senanque_murs, SEG.murs_joucas, rev(SEG.base_joucas)),
       prof:[[0,420],[5,340],[9,300],[12,370],[15,310],[19,430],[22,510],[26,400],[29,300],[32,330],[36,420]],
-      pois:[POI.gordes, POI.senanque, POI.bories], labels:[LBL.joucas, LBL.gordes, LBL.senanque, LBL.murs],
+      pois:[POI.gordes, POI.firmin, POI.senanque, POI.bories, POI.joucasart], labels:[LBL.joucas, LBL.gordes, LBL.senanque, LBL.murs],
       timeline:[
         {h:'09h15', t:'<b>D\u00e9part Airbnb.</b> D2 vers Joucas puis Gordes.'},
         {h:'10h30', t:'<b>Gordes</b> \u2014 visite du village en balcon.'},
@@ -575,25 +611,11 @@ var DATA = [
         {h:'15h15', t:'Caf\u00e9 \u00e0 Joucas, retour par la D2.'},
         {h:'16h30', t:'Arriv\u00e9e \u00e0 la base.'}
       ]},
-    {km:42, dplus:'780 m', selle:'3 h 30', effort:'\u2248 5 h 30', name:'+ col de Murs & Lioux',
-      desc:'<b>+ le point culminant du s\u00e9jour :</b> depuis Murs, mont\u00e9e au col de Murs (627 m, vue Ventoux), grande descente de la combe de Lioux sous la falaise de la Madeleine, retour par Croagnes.',
-      pts:P(SEG.base_joucas, SEG.joucas_gordes, SEG.gordes_senanque, SEG.senanque_murs, SEG.murs_col_lioux, SEG.lioux_base),
-      prof:[[0,420],[5,340],[9,300],[12,370],[15,310],[19,430],[22,510],[25,627],[29,450],[31,350],[36,500],[42,420]],
-      pois:[POI.gordes, POI.senanque, POI.bories, POI.madeleine], labels:[LBL.joucas, LBL.gordes, LBL.senanque, LBL.murs, LBL.col, LBL.lioux, LBL.croagnes],
-      timeline:[
-        {h:'09h00', t:'<b>D\u00e9part Airbnb.</b> D2 vers Joucas puis Gordes.'},
-        {h:'10h15', t:'<b>Gordes</b> \u2014 visite, puis S\u00e9nanque (descente prudente).'},
-        {h:'12h30', t:'<b>Pique-nique \u00e0 Murs.</b>', pic:true},
-        {h:'13h45', t:'<b>Col de Murs (627 m)</b> \u2014 point culminant, vue sur le Ventoux.'},
-        {h:'14h30', t:'Grande descente de la <b>combe de Lioux</b>, falaise de la Madeleine \u00e0 main gauche.'},
-        {h:'15h15', t:'<b>Lioux</b> \u2014 pause au pied de la falaise.'},
-        {h:'16h30', t:'Retour \u00e0 la base par Croagnes.'}
-      ]},
-    {km:46, dplus:'850 m', selle:'3 h 45', effort:'\u2248 6 h', name:'Grande boucle horaire',
+    {km:41, dplus:'850 m', selle:'3 h 20', effort:'\u2248 5 h 15', name:'Grande boucle horaire',
       desc:'<b>La boucle compl\u00e8te en sens horaire :</b> les hauteurs le matin (Croagnes, Lioux, col de Murs), pique-nique \u00e0 Murs, puis S\u00e9nanque et Gordes l\u2019apr\u00e8s-midi dans la plus belle lumi\u00e8re, retour par Joucas.',
       pts:P(rev(SEG.lioux_base), rev(SEG.murs_col_lioux), rev(SEG.senanque_murs), rev(SEG.gordes_senanque), rev(SEG.joucas_gordes), rev(SEG.base_joucas)),
       prof:[[0,420],[4,520],[8,400],[10,350],[14,500],[16,627],[19,510],[24,430],[26,310],[28,430],[31,370],[35,250],[38,300],[46,420]],
-      pois:[POI.madeleine, POI.senanque, POI.gordes, POI.bories], labels:[LBL.croagnes, LBL.lioux, LBL.col, LBL.murs, LBL.senanque, LBL.gordes, LBL.joucas],
+      pois:[POI.madeleine, POI.senanque, POI.gordes, POI.firmin, POI.bories, POI.joucasart], labels:[LBL.croagnes, LBL.lioux, LBL.col, LBL.murs, LBL.senanque, LBL.gordes, LBL.joucas],
       timeline:[
         {h:'09h00', t:'<b>D\u00e9part Airbnb.</b> Mont\u00e9e douce vers Croagnes puis Lioux.'},
         {h:'10h00', t:'<b>Lioux</b> \u2014 la falaise de la Madeleine surgit, arr\u00eat photo.'},
@@ -615,7 +637,7 @@ var DATA = [
   id:'j3', tab:'J3', date:'2 oct', theme:'Calavon & villages perch\u00e9s du Sud', sub:'Jour 3 · Jeudi 2 octobre',
   intro:'Boucle <b>sud</b> le long du Calavon. Le curseur fait grandir la journ\u00e9e : Pont Julien seul, puis Goult et Saint-Pantal\u00e9on, Bonnieux et Lacoste, jusqu\u2019\u00e0 Saignon et le plateau des Clapar\u00e8des.',
   levels:[
-    {km:28, dplus:'260 m', selle:'2 h', effort:'\u2248 3 h 30', name:'V\u00e9loroute & Pont Julien',
+    {km:34, dplus:'260 m', selle:'2 h 30', effort:'\u2248 4 h', name:'V\u00e9loroute & Pont Julien',
       desc:'<b>La journ\u00e9e douceur, quasi plate :</b> D943 \u2192 Apt (march\u00e9) \u2192 v\u00e9loroute du Calavon \u2192 pique-nique au Pont Julien \u2192 retour par la m\u00eame voie verte, sans voiture.',
       pts:P(SEG.d943_apt, SEG.veloroute_pj, rev(SEG.veloroute_pj), rev(SEG.d943_apt)),
       prof:[[0,420],[5,300],[9,240],[12,230],[14,220],[17,230],[21,240],[24,300],[28,420]],
@@ -628,11 +650,11 @@ var DATA = [
         {h:'14h00', t:'Sieste au bord du Calavon ou d\u00e9part tranquille.'},
         {h:'15h30', t:'Retour v\u00e9loroute + D943, arriv\u00e9e vers 16 h \u2014 ap\u00e9ro de cl\u00f4ture.'}
       ]},
-    {km:34, dplus:'350 m', selle:'2 h 30', effort:'\u2248 4 h', name:'+ Goult & Saint-Pantal\u00e9on',
+    {km:41, dplus:'350 m', selle:'3 h', effort:'\u2248 4 h 45', name:'+ Goult & Saint-Pantal\u00e9on',
       desc:'<b>En boucle plut\u00f4t qu\u2019en A/R :</b> apr\u00e8s le Pont Julien, Goult (moulin de J\u00e9rusalem) puis la minuscule chapelle romane de Saint-Pantal\u00e9on, retour par la D2.',
       pts:P(SEG.d943_apt, SEG.veloroute_pj, SEG.pj_goult, SEG.goult_stpant, SEG.stpant_base),
       prof:[[0,420],[5,300],[9,240],[13,225],[16,220],[19,250],[23,230],[26,280],[30,320],[34,420]],
-      pois:[POI.pj], labels:[LBL.apt, LBL.pj, LBL.goult, LBL.stpant],
+      pois:[POI.pj, POI.jerusalem, POI.stpant], labels:[LBL.apt, LBL.pj, LBL.goult, LBL.stpant],
       timeline:[
         {h:'09h30', t:'<b>D\u00e9part Airbnb.</b> D943 sur Apt, ravitaillement au march\u00e9.'},
         {h:'11h00', t:'V\u00e9loroute du Calavon plein ouest.'},
@@ -642,11 +664,11 @@ var DATA = [
         {h:'15h15', t:'Retour par la D2.'},
         {h:'16h00', t:'Arriv\u00e9e \u00e0 la base \u2014 ap\u00e9ro de cl\u00f4ture.'}
       ]},
-    {km:45, dplus:'520 m', selle:'3 h 15', effort:'\u2248 5 h', name:'+ Bonnieux & Lacoste',
+    {km:49, dplus:'520 m', selle:'3 h 30', effort:'\u2248 5 h 30', name:'+ Bonnieux & Lacoste',
       desc:'<b>Les villages perch\u00e9s du Petit Luberon :</b> v\u00e9loroute jusqu\u2019au Pont Julien, mont\u00e9e unique \u00e0 Bonnieux (pique-nique face au Ventoux), Lacoste et son ch\u00e2teau, puis Goult, Saint-Pantal\u00e9on et retour.',
       pts:P(SEG.d943_apt, SEG.veloroute_pj, SEG.pj_bonnieux, SEG.bonnieux_lacoste, SEG.lacoste_goult, SEG.goult_stpant, SEG.stpant_base),
       prof:[[0,420],[5,300],[9,240],[14,225],[17,220],[21,425],[24,320],[28,250],[31,230],[35,280],[45,420]],
-      pois:[POI.pj, POI.bonnieux, POI.lacoste], labels:[LBL.apt, LBL.pj, LBL.bonnieux, LBL.lacoste, LBL.goult, LBL.stpant],
+      pois:[POI.pj, POI.bonnieux, POI.lacoste, POI.jerusalem, POI.stpant], labels:[LBL.apt, LBL.pj, LBL.bonnieux, LBL.lacoste, LBL.goult, LBL.stpant],
       timeline:[
         {h:'09h15', t:'<b>D\u00e9part Airbnb.</b> D943 sur Apt, ravitaillement.'},
         {h:'10h30', t:'V\u00e9loroute jusqu\u2019au <b>Pont Julien</b> (arr\u00eat photo).'},
@@ -656,8 +678,8 @@ var DATA = [
         {h:'15h00', t:'<b>Goult</b> puis <b>Saint-Pantal\u00e9on</b>.'},
         {h:'16h30', t:'Retour \u00e0 la base par la D2 \u2014 ap\u00e9ro de cl\u00f4ture.'}
       ]},
-    {km:50, dplus:'700 m', selle:'3 h 45', effort:'\u2248 6 h', name:'+ Saignon & Clapar\u00e8des',
-      desc:'<b>La grande journ\u00e9e du Sud :</b> mont\u00e9e \u00e0 Saignon (rocher de Bellevue \u00e0 pied), travers\u00e9e du plateau des Clapar\u00e8des (bories, lavande), Bonnieux, Lacoste, Pont Julien, puis retour par la v\u00e9loroute et la D943.',
+    {km:57, dplus:'700 m', selle:'4 h 15', effort:'\u2248 6 h 30', name:'+ Saignon & Clapar\u00e8des',
+      desc:'<b>La grande journ\u00e9e du Sud :</b> mont\u00e9e \u00e0 Saignon (rocher de Bellevue \u00e0 pied), travers\u00e9e du plateau des Clapar\u00e8des (bories, lavande), Bonnieux, Lacoste, Pont Julien, puis retour par la v\u00e9loroute et la D943. <b>La plus longue du s\u00e9jour (~57\u201365 km selon routage)</b> \u2014 \u00e0 r\u00e9server \u00e0 une journ\u00e9e en forme.',
       pts:P(SEG.d943_apt, SEG.apt_saignon, SEG.saignon_bonnieux, SEG.bonnieux_lacoste, SEG.lacoste_pj, rev(SEG.veloroute_pj), rev(SEG.d943_apt)),
       prof:[[0,420],[5,300],[9,240],[13,470],[18,550],[24,500],[29,425],[33,320],[36,230],[40,225],[45,300],[50,420]],
       pois:[POI.saignon, POI.bonnieux, POI.lacoste, POI.pj], labels:[LBL.apt, LBL.saignon, LBL.claparedes, LBL.bonnieux, LBL.lacoste, LBL.pj],
@@ -680,11 +702,22 @@ var DATA = [
 }
 ];
 
+/* km réel mesuré par le routage (mémorisé), sinon estimation */
+function realKm(day, l){
+  try{
+    var v = parseInt(localStorage.getItem('lubreal-'+day.id+'-'+l.km),10);
+    if(v > 5 && v < 120){ return v; }
+  }catch(e){}
+  return null;
+}
+function kmOf(day, l){ var r = realKm(day, l); return r !== null ? r : l.km; }
+function kmLabel(day, l){ var r = realKm(day, l); return r !== null ? (r+' km') : ('\u2248 '+l.km+' km'); }
+
 function levelFor(day){
   var target = TARGETS[day.id];
-  var best = day.levels[0], bd = Math.abs(day.levels[0].km - target);
+  var best = day.levels[0], bd = Math.abs(kmOf(day, day.levels[0]) - target);
   day.levels.forEach(function(l){
-    var d = Math.abs(l.km - target);
+    var d = Math.abs(kmOf(day, l) - target);
     if(d < bd){ best = l; bd = d; }
   });
   return best;
@@ -827,6 +860,70 @@ function downloadGpx(dayId){
   setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
 
+/* ---------- routage des itinéraires officiels ---------- */
+function getOfficialRoute(o, cb){
+  var key = 'luboff2-' + o.id;
+  try{
+    var cached = localStorage.getItem(key);
+    if(cached){ cb(JSON.parse(cached)); return; }
+  }catch(e){}
+  var wps = o.wps.map(function(p){ return p[1].toFixed(5)+','+p[0].toFixed(5); });
+  var url = 'https://brouter.de/brouter?lonlats=' + wps.join('|') + '&profile=trekking&alternativeidx=0&format=geojson';
+  function attempt(remaining){
+    fetch(url).then(function(r){
+      if(!r.ok){ throw new Error('http '+r.status); }
+      return r.json();
+    }).then(function(gj){
+      var f = gj && gj.features && gj.features[0];
+      var coords = f.geometry.coordinates.map(function(q){ return [ +q[1].toFixed(5), +q[0].toFixed(5) ]; });
+      coords = despur(coords, []);
+      coords = sampleN(coords, 500);
+      try{ localStorage.setItem(key, JSON.stringify(coords)); }catch(e){}
+      cb(coords);
+    }).catch(function(){
+      if(remaining > 0){ setTimeout(function(){ attempt(remaining-1); }, 1500); }
+      else{ cb(null); }
+    });
+  }
+  attempt(2);
+}
+
+function applyOfficials(m){
+  if(m._offLayer){ try{ m.removeLayer(m._offLayer); }catch(e){} m._offLayer = null; }
+  if(!SHOW_OFF){ return; }
+  var g = L.layerGroup().addTo(m);
+  m._offLayer = g;
+  (function next(i){
+    if(i >= OFFICIALS.length || m._offLayer !== g){ return; }
+    var o = OFFICIALS[i];
+    /* schéma immédiat, affiné dès que le routage répond */
+    var sk = L.polyline(o.wps, {color:o.color, weight:3, opacity:.55, dashArray:'2 9'}).addTo(g);
+    sk.bindTooltip(o.name, {sticky:true});
+    getOfficialRoute(o, function(coords){
+      if(m._offLayer !== g){ return; }
+      if(coords){
+        g.removeLayer(sk);
+        L.polyline(coords, {color:o.color, weight:3.5, opacity:.85, dashArray:'7 7'}).addTo(g)
+          .bindTooltip('<b>'+o.name+'</b><br><span style="font-size:.85em">'+o.desc+'</span>', {sticky:true});
+      }
+      setTimeout(function(){ next(i+1); }, 400);
+    });
+  })(0);
+}
+
+function applyOfficialsAll(){
+  Object.keys(maps).forEach(function(k){ if(maps[k]){ applyOfficials(maps[k]); } });
+}
+
+function officialsToggleHtml(){
+  var chips = OFFICIALS.map(function(o){
+    return '<span class="off-chip"><span class="sw" style="background:'+o.color+'"></span>'+o.name+'</span>';
+  }).join('');
+  return '<label class="off-toggle"><input type="checkbox" id="off-check" '+(SHOW_OFF?'checked':'')+'>'
+    +'<span>Afficher les itin\u00e9raires officiels balis\u00e9s <i>(en pointill\u00e9s, \u00e0 titre de comparaison)</i></span></label>'
+    +'<div class="off-chips" style="display:'+(SHOW_OFF?'flex':'none')+'">'+chips+'</div>';
+}
+
 /* ---------- helpers UI ---------- */
 var mainEl = document.getElementById('main');
 var tabsEl = document.getElementById('tabs');
@@ -896,11 +993,11 @@ function legendHtml(){
   var totKm=0, totD=0, rows='';
   DATA.forEach(function(day){
     var l = levelFor(day);
-    totKm += l.km;
+    totKm += kmOf(day, l);
     totD += parseInt(l.dplus.replace(/\s/g,''),10);
     rows += '<div class="lrow"><span class="sw" style="background:'+DAYCOLORS[day.id]+'"></span>'
          + '<span class="nm">'+day.tab+' \u00b7 '+l.name+'</span>'
-         + '<span class="st">'+l.km+' km \u00b7 '+l.dplus+' D+</span></div>';
+         + '<span class="st">'+kmLabel(day, l)+' \u00b7 '+l.dplus+' D+</span></div>';
   });
   return '<div class="legend">'+rows+'</div>'
     +'<p class="map-note" style="margin-top:10px">Total s\u00e9jour : \u2248 '+totKm+' km \u00b7 '+totD+' m D+. Le curseur global r\u00e8gle les trois jours d\u2019un coup ; chaque journ\u00e9e peut ensuite \u00eatre ajust\u00e9e individuellement dans son onglet.</p>';
@@ -916,6 +1013,7 @@ function overviewHtml(){
     +'<button class="gpx-btn" id="share-btn" style="margin-top:10px">\ud83d\udce4 Partager le r\u00e9glage aux autres t\u00e9l\u00e9phones (lien + QR)</button>'
     +'<div id="share-zone" style="display:none"></div>'
     +legendHtml()
+    +officialsToggleHtml()
     +'<div class="map" id="map-apercu" style="position:relative;margin-top:14px"></div>'
     +'<p class="map-note" id="rtstatus-apercu" style="margin-top:8px">Trac\u00e9s : sch\u00e9ma \u2014 affinage par routage en cours\u2026</p>'
     +'</div>';
@@ -927,8 +1025,9 @@ function dayHtml(day){
     +'<h2><small>'+day.sub+'</small>'+l.name+'</h2>'
     +'<p class="muted" style="margin-top:8px">'+day.intro+'</p>'
     +sliderMarkup('slider-'+day.id, TARGETS[day.id], 'Distance de cette journ\u00e9e')
-    +'<div id="stats-'+day.id+'">'+statHtml(l)+'</div>'
+    +'<div id="stats-'+day.id+'">'+statHtml({km: kmOf(day,l), dplus: l.dplus, selle: l.selle, effort: l.effort})+'</div>'
     +'<div class="variant-desc">'+l.desc+'</div>'
+    +'<p class="map-note" style="margin-top:10px">Objectif '+TARGETS[day.id]+' km \u2192 boucle de <b style="color:var(--gold)">'+kmLabel(day, l)+'</b>'+(realKm(day,l)!==null ? ' (distance mesur\u00e9e par routage)' : ' (estimation \u2014 affin\u00e9e d\u00e8s le chargement de la carte)')+'.</p>'
     +'</div>';
   h += '<div class="card"><h3>Carte</h3><div class="map" id="map-'+day.id+'" style="position:relative"></div>'
     +'<p class="map-note" id="rtstatus-'+day.id+'" style="margin-top:8px">Trac\u00e9 : sch\u00e9ma \u2014 affinage par routage en cours\u2026</p>'
@@ -936,7 +1035,7 @@ function dayHtml(day){
     +'<button class="guidon-btn" data-day="'+day.id+'">\ud83d\udeb4 Mode guidon</button>'
     +'<button class="gpx-btn" data-day="'+day.id+'">\u2b07\ufe0f Exporter GPX</button>'
     +'</div>'
-    +'<p class="map-note">\u2605 = base Airbnb (62 ch. de la Fontaine de Guby) \u00b7 \ud83d\udc5f = visite/marche \u00e0 pied, v\u00e9los attach\u00e9s \u00b7 fl\u00e8ches = sens de parcours \u00b7 100 % compatible VTC : goudron et voie verte uniquement. GPX officiels : onglet Pratique.</p></div>';
+    +'<p class="map-note">\u2605 = base Airbnb (62 ch. de la Fontaine de Guby) \u00b7 \ud83d\udc5f = balade \u00e0 pied \u00b7 \ud83c\udfdb\ufe0f = site touristique / visite (v\u00e9los attach\u00e9s dans les deux cas) \u00b7 fl\u00e8ches = sens de parcours \u00b7 100 % compatible VTC : goudron et voie verte uniquement. GPX officiels : onglet Pratique.</p></div>';
   h += '<div class="card"><h3>Profil de d\u00e9nivel\u00e9</h3><div class="profile" id="prof-'+day.id+'">'+profileSvg(l.prof)+'</div>'
     +'<p class="map-note" id="profnote-'+day.id+'">Profil estim\u00e9 \u2014 remplac\u00e9 par les altitudes r\u00e9elles du routage d\u00e8s que la carte est charg\u00e9e.</p></div>';
   h += '<div class="card"><h3>D\u00e9roul\u00e9 de la journ\u00e9e</h3>'+timelineHtml(l.timeline)+'</div>';
@@ -966,6 +1065,7 @@ function practicalHtml(){
   +'<li><b>Trac\u00e9s de l\u2019app :</b> affin\u00e9s automatiquement par le routeur communautaire BRouter (profil trekking, privil\u00e9gie v\u00e9loroutes et petites routes). Une fois charg\u00e9s en ligne, ils restent en m\u00e9moire hors connexion.</li>'
   +'<li><b>J1 (niveau 51 km) :</b> boucle balis\u00e9e n\u00b013 \u00ab Les Ocres \u00e0 v\u00e9lo \u00bb (pastilles orange/blanc, liaisons de raccourci en ocre jaune). L\u2019appli gratuite \u00ab Ocres \u00e0 v\u00e9lo \u00bb du Parc du Luberon ajoute audio-guides et quizz.</li>'
   +'<li><b>J3 :</b> Bonnieux et Lacoste sont sur la grande boucle balis\u00e9e \u00ab Autour du Luberon \u00bb (V863) \u2014 panneaux bleus sens horaire, orange anti-horaire.</li>'
+  +'<li><b>Surimpression \u00ab itin\u00e9raires officiels \u00bb :</b> l\u2019interrupteur de l\u2019accueil affiche en pointill\u00e9s la v\u00e9loroute du Calavon (vert), la boucle n\u00b013 des Ocres (rose) et le tron\u00e7on local de la V863 (violet) \u2014 trac\u00e9s reconstitu\u00e9s par routage sur les parcours officiels, pour comparer nos boucles \u00e0 ce qui est balis\u00e9 sur le terrain.</li>'
   +'<li><b>Export GPX int\u00e9gr\u00e9 :</b> chaque journ\u00e9e a son bouton \u00ab Exporter le GPX \u00bb sous la carte \u2014 le fichier reprend exactement le trac\u00e9 rout\u00e9 affich\u00e9, altitudes comprises, pr\u00eat pour Komoot, Garmin ou OsmAnd.</li>'
   +'<li>Traces GPX officielles t\u00e9l\u00e9chargeables gratuitement sur <b>veloloisirprovence.com</b> \u2014 \u00e0 charger la veille sur un ou deux t\u00e9l\u00e9phones du groupe en secours du balisage.</li>'
   +'</ul></div>'
@@ -1038,18 +1138,22 @@ function baseIcon(){
   });
 }
 
-function shoeIcon(){
+function poiIcon(kind){
+  var emoji = kind==='s' ? '\ud83c\udfdb\ufe0f' : '\ud83d\udc5f';
+  var border = kind==='s' ? '#c99a2e' : '#e0492e';
   return L.divIcon({
     className:'',
-    html:'<div style="width:26px;height:26px;border-radius:50%;background:#fff;border:2.5px solid #e0492e;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.4)">\ud83d\udc5f</div>',
+    html:'<div style="width:26px;height:26px;border-radius:50%;background:#fff;border:2.5px solid '+border+';display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1;box-shadow:0 1px 4px rgba(0,0,0,.4)">'+emoji+'</div>',
     iconSize:[26,26], iconAnchor:[13,13], popupAnchor:[0,-14]
   });
 }
 
 function addPois(m, list){
   (list||[]).forEach(function(p){
-    var html = '<b>\ud83d\udc5f '+p[2]+'</b>' + (p[3] ? '<br><span style="font-size:.82em;line-height:1.45;display:block;margin-top:5px">'+p[3]+'</span>' : '');
-    L.marker([p[0],p[1]], {icon: shoeIcon(), title:p[2]}).addTo(m)
+    var kind = p[4] || 'w';
+    var head = kind==='s' ? '\ud83c\udfdb\ufe0f' : '\ud83d\udc5f';
+    var html = '<b>'+head+' '+p[2]+'</b>' + (p[3] ? '<br><span style="font-size:.82em;line-height:1.45;display:block;margin-top:5px">'+p[3]+'</span>' : '');
+    L.marker([p[0],p[1]], {icon: poiIcon(kind), title:p[2]}).addTo(m)
       .bindPopup(html, {maxWidth:270});
   });
 }
@@ -1152,6 +1256,7 @@ function refineTrack(m, day, l, statusId, nArrows){
     if(maps[m._lubId] !== m){ return; } /* carte reconstruite entre-temps */
     drawTrack(m, 'day-'+day.id, coords, DAYCOLORS[day.id], nArrows);
     ROUTED[day.id] = {coords: coords, name: l.name, km: lenKm || l.km};
+    if(lenKm){ try{ localStorage.setItem('lubreal-'+day.id+'-'+l.km, String(lenKm)); }catch(e){} }
     var pr = buildProfile(coords);
     if(pr){
       var pe = document.getElementById('prof-'+day.id);
@@ -1181,6 +1286,7 @@ function initDayMap(day){
     drawTrack(m, 'day-'+day.id, l.pts, DAYCOLORS[day.id], 8);
     m.fitBounds(L.polyline(l.pts).getBounds(), {padding:[24,24]});
     maps[day.id] = m;
+    applyOfficials(m);
     refineTrack(m, day, l, 'rtstatus-'+day.id, 8);
   }catch(e){
     var el = document.getElementById('map-'+day.id);
@@ -1213,7 +1319,8 @@ function initOverviewMap(){
       }
       var day = DATA[idx];
       var l = levelFor(day);
-      getRoute(day, l, function(coords){
+      getRoute(day, l, function(coords, srcType, lenKm){
+        if(lenKm){ try{ localStorage.setItem('lubreal-'+day.id+'-'+l.km, String(lenKm)); }catch(e){} }
         if(coords && maps.apercu === m){ drawTrack(m, 'day-'+day.id, coords, DAYCOLORS[day.id], 5); refined++; }
         else if(!coords){ failed++; }
         setTimeout(function(){ next(idx+1); }, 400);
@@ -1221,6 +1328,7 @@ function initOverviewMap(){
     })(0);
     if(bounds){ m.fitBounds(bounds, {padding:[26,26]}); }
     maps.apercu = m;
+    applyOfficials(m);
   }catch(e){
     var el = document.getElementById('map-apercu');
     if(el){ el.innerHTML = '<p style="padding:20px" class="muted">Carte indisponible hors connexion \u2014 la l\u00e9gende r\u00e9capitule les trois journ\u00e9es.</p>'; }
@@ -1393,6 +1501,16 @@ function showTab(id, btn){
 }
 
 /* curseurs : délégation */
+mainEl.addEventListener('change', function(ev){
+  if(ev.target && ev.target.id === 'off-check'){
+    SHOW_OFF = !!ev.target.checked;
+    try{ localStorage.setItem('lubofficial', SHOW_OFF ? '1' : '0'); }catch(e){}
+    var chips = document.querySelector('.off-chips');
+    if(chips){ chips.style.display = SHOW_OFF ? 'flex' : 'none'; }
+    applyOfficialsAll();
+  }
+});
+
 mainEl.addEventListener('input', function(ev){
   var el = ev.target;
   if(!el || !el.classList || !el.classList.contains('km-slider')) return;
