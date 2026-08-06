@@ -332,7 +332,7 @@ footer{
 <header>
   <div class="wrap">
     <div class="topline">
-      <span class="ver" id="app-version">v3.0.0</span>
+      <span class="ver" id="app-version">v3.1.0</span>
       <button id="theme-toggle" title="Basculer clair / sombre" aria-label="Basculer entre mode clair et mode sombre">☀️</button>
     </div>
     <div class="eyebrow">Saint-Saturnin-lès-Apt · Luberon · Vaucluse</div>
@@ -358,7 +358,7 @@ footer{
 <script>
 'use strict';
 /* =========================================================
-   Étoile du Luberon — PWA · v3.0.0
+   Étoile du Luberon — PWA · v3.1.0
    Base : 62 chemin de la Fontaine de Guby, Saint-Saturnin-lès-Apt
    Curseur global + curseurs par jour (20→50 km) ·
    Routage BRouter (profil trekking) avec cache et repli schématique
@@ -492,6 +492,18 @@ var DATA = [
   id:'j1', tab:'J1', date:'30 sept', theme:'Le pays des Ocres', sub:'Jour 1 · Mardi 30 septembre',
   intro:'Boucle <b>est</b> autour des sites ocriers. Le curseur fait grandir la journ\u00e9e : Colorado seul, puis Gargas, Roussillon, Joucas, jusqu\u2019\u00e0 la boucle balis\u00e9e n\u00b013 compl\u00e8te.',
   levels:[
+    {km:19, dplus:'220 m', selle:'1 h 30', effort:'\u2248 3 h', name:'Roussillon express',
+      desc:'<b>La plus courte du s\u00e9jour c\u00f4t\u00e9 ocres :</b> aller-retour direct \u00e0 Roussillon par la D227 en balcon \u2014 sentier des Ocres, pique-nique sur la place haute, retour tranquille. Apr\u00e8s-midi libre au village (moulins de St-Saturnin \u00e0 pied).',
+      pts:P(rev(SEG.d227_base), SEG.d227_base),
+      prof:[[0,420],[3,360],[6,320],[9,340],[12,320],[16,360],[19,420]],
+      pois:[POI.stsat, POI.ocres], labels:[LBL.roussillon],
+      timeline:[
+        {h:'09h30', t:'<b>D\u00e9part Airbnb.</b> D227 en balcon, les falaises d\u2019ocre en ligne de mire.'},
+        {h:'10h15', t:'<b>Roussillon</b> \u2014 v\u00e9los attach\u00e9s, sentier des Ocres \u00e0 pied (35\u201350 min).'},
+        {h:'12h15', t:'<b>Pique-nique sur la place haute</b>, caf\u00e9 et fl\u00e2nerie dans les ruelles.', pic:true},
+        {h:'14h00', t:'Retour par la m\u00eame D227, tout en douceur.'},
+        {h:'15h00', t:'Base \u2014 option : mont\u00e9e \u00e0 pied aux moulins et au ch\u00e2teau de St-Saturnin (30\u201345 min).'}
+      ]},
     {km:25, dplus:'280 m', selle:'2 h', effort:'\u2248 3 h 45', name:'Colorado proven\u00e7al',
       desc:'<b>Aller-retour au Colorado par Villars :</b> marche du Sahara + pique-nique sur site, retour par le m\u00eame itin\u00e9raire vallonn\u00e9. Roussillon reste accessible en voiture en fin d\u2019apr\u00e8s-midi (15 min).',
       pts:P(SEG.d179_colorado, rev(SEG.d179_colorado)),
@@ -571,6 +583,18 @@ var DATA = [
   id:'j2', tab:'J2', date:'1 oct', theme:'Gordes & les Monts de Vaucluse', sub:'Jour 2 · Mercredi 1er octobre',
   intro:'Boucle <b>nord-ouest</b>. Le curseur fait grandir la journ\u00e9e : Gordes seul, puis S\u00e9nanque, Murs, et jusqu\u2019au col de Murs et la combe de Lioux. La journ\u00e9e la plus vallonn\u00e9e \u2014 l\u2019assistance fait la diff\u00e9rence.',
   levels:[
+    {km:25, dplus:'260 m', selle:'1 h 50', effort:'\u2248 3 h', name:'Joucas aller-retour',
+      desc:'<b>La journ\u00e9e la plus douce c\u00f4t\u00e9 ouest :</b> D2 jusqu\u2019\u00e0 Joucas, labyrinthe d\u2019art dans les ruelles, pique-nique \u00e0 la placette. Les plus motiv\u00e9s peuvent pousser \u00e0 Gordes (+8 km A/R) pendant que les autres fl\u00e2nent.',
+      pts:P(SEG.base_joucas, rev(SEG.base_joucas)),
+      prof:[[0,420],[4,350],[8,310],[12,300],[16,320],[20,360],[25,420]],
+      pois:[POI.joucasart], labels:[LBL.joucas],
+      timeline:[
+        {h:'09h30', t:'<b>D\u00e9part Airbnb.</b> D2 plein sud-ouest, descente plaisir.'},
+        {h:'10h30', t:'<b>Joucas</b> \u2014 labyrinthe d\u2019art \u00e0 pied dans les calades (sculptures monumentales, gratuit).'},
+        {h:'12h00', t:'<b>Pique-nique \u00e0 la placette</b>, fontaine et ombre garanties.', pic:true},
+        {h:'13h30', t:'Option \u00e0 la carte : pousser \u00e0 Gordes \u00e0 4 (+8 km A/R) ou sieste \u00e0 l\u2019ombre.'},
+        {h:'15h15', t:'Retour \u00e0 la base par la D2.'}
+      ]},
     {km:33, dplus:'430 m', selle:'2 h 30', effort:'\u2248 4 h', name:'Gordes par Joucas',
       desc:'<b>Le plus beau balcon du Luberon :</b> D2 \u2192 Joucas \u2192 Gordes (visite + pique-nique face au village) \u2192 retour identique. S\u00e9nanque possible en voiture en fin d\u2019apr\u00e8s-midi (10 min).',
       pts:P(SEG.base_joucas, SEG.joucas_gordes, rev(SEG.joucas_gordes), rev(SEG.base_joucas)),
@@ -637,6 +661,19 @@ var DATA = [
   id:'j3', tab:'J3', date:'2 oct', theme:'Calavon & villages perch\u00e9s du Sud', sub:'Jour 3 · Jeudi 2 octobre',
   intro:'Boucle <b>sud</b> le long du Calavon. Le curseur fait grandir la journ\u00e9e : Pont Julien seul, puis Goult et Saint-Pantal\u00e9on, Bonnieux et Lacoste, jusqu\u2019\u00e0 Saignon et le plateau des Clapar\u00e8des.',
   levels:[
+    {km:17, dplus:'200 m', selle:'1 h 20', effort:'\u2248 3 h', name:'Apt, march\u00e9 & cath\u00e9drale',
+      desc:'<b>La mini-journ\u00e9e urbaine :</b> descente directe sur Apt par la D943, march\u00e9 couvert (fruits confits !), cath\u00e9drale Sainte-Anne et vieille ville \u00e0 pied, pique-nique au plan d\u2019eau de la Riaille, retour tranquille.',
+      pts:P(SEG.d943_apt, rev(SEG.d943_apt)),
+      prof:[[0,420],[4,320],[7,250],[9,240],[11,250],[14,320],[17,420]],
+      pois:[POI.stsat], labels:[LBL.apt],
+      timeline:[
+        {h:'09h30', t:'<b>D\u00e9part Airbnb.</b> D943 en descente directe sur Apt.'},
+        {h:'10h05', t:'<b>March\u00e9 couvert d\u2019Apt</b> \u2014 fruits confits, fromages, ravitaillement.'},
+        {h:'10h45', t:'<b>Cath\u00e9drale Sainte-Anne</b> et vieille ville \u00e0 pied, caf\u00e9 sur la place.'},
+        {h:'12h15', t:'<b>Pique-nique au plan d\u2019eau de la Riaille</b>, au bord du Calavon.', pic:true},
+        {h:'14h00', t:'Remont\u00e9e tranquille par la D943.'},
+        {h:'15h00', t:'Base \u2014 option : moulins et ch\u00e2teau de St-Saturnin \u00e0 pied.'}
+      ]},
     {km:34, dplus:'260 m', selle:'2 h 30', effort:'\u2248 4 h', name:'V\u00e9loroute & Pont Julien',
       desc:'<b>La journ\u00e9e douceur, quasi plate :</b> D943 \u2192 Apt (march\u00e9) \u2192 v\u00e9loroute du Calavon \u2192 pique-nique au Pont Julien \u2192 retour par la m\u00eame voie verte, sans voiture.',
       pts:P(SEG.d943_apt, SEG.veloroute_pj, rev(SEG.veloroute_pj), rev(SEG.d943_apt)),
@@ -1013,7 +1050,6 @@ function overviewHtml(){
     +'<button class="gpx-btn" id="share-btn" style="margin-top:10px">\ud83d\udce4 Partager le r\u00e9glage aux autres t\u00e9l\u00e9phones (lien + QR)</button>'
     +'<div id="share-zone" style="display:none"></div>'
     +legendHtml()
-    +officialsToggleHtml()
     +'<div class="map" id="map-apercu" style="position:relative;margin-top:14px"></div>'
     +'<p class="map-note" id="rtstatus-apercu" style="margin-top:8px">Trac\u00e9s : sch\u00e9ma \u2014 affinage par routage en cours\u2026</p>'
     +'</div>';
@@ -1047,8 +1083,53 @@ function dayHtml(day){
   return h;
 }
 
+function officialsCardHtml(){
+  var chips = OFFICIALS.map(function(o){
+    return '<span class="off-chip"><span class="sw" style="background:'+o.color+'"></span>'+o.name+'</span>';
+  }).join('');
+  return '<div class="card"><h3>Itin\u00e9raires officiels balis\u00e9s \u2014 pour comparaison</h3>'
+    +'<p class="muted" style="margin-bottom:12px">Ce qui existe \u00ab officiellement \u00bb dans le secteur, \u00e0 c\u00f4t\u00e9 de nos boucles sur mesure : la v\u00e9loroute du Calavon, la boucle n\u00b013 des Ocres (jumelle de notre J1 en 51 km) et le tron\u00e7on local de la grande boucle V863. Trac\u00e9s reconstitu\u00e9s par routage sur les parcours officiels.</p>'
+    +'<div class="map" id="map-officiels" style="position:relative"></div>'
+    +'<div class="off-chips" style="display:flex">'+chips+'</div>'
+    +'</div>';
+}
+
+function initOfficialsMap(){
+  if(maps.officiels){ setTimeout(function(){ maps.officiels.invalidateSize(); }, 60); return; }
+  var el = document.getElementById('map-officiels');
+  if(!el){ return; }
+  try{
+    var m = makeMap('map-officiels');
+    var bounds = null;
+    OFFICIALS.forEach(function(o){
+      var b = L.polyline(o.wps).getBounds();
+      bounds = bounds ? bounds.extend(b) : L.latLngBounds(b.getSouthWest(), b.getNorthEast());
+    });
+    if(bounds){ m.fitBounds(bounds, {padding:[24,24]}); }
+    maps.officiels = m;
+    (function next(i){
+      if(i >= OFFICIALS.length || maps.officiels !== m){ return; }
+      var o = OFFICIALS[i];
+      var sk = L.polyline(o.wps, {color:o.color, weight:3, opacity:.55, dashArray:'2 9'}).addTo(m);
+      sk.bindTooltip(o.name, {sticky:true});
+      getOfficialRoute(o, function(coords){
+        if(maps.officiels !== m){ return; }
+        if(coords){
+          m.removeLayer(sk);
+          L.polyline(coords, {color:o.color, weight:3.5, opacity:.85, dashArray:'7 7'}).addTo(m)
+            .bindTooltip('<b>'+o.name+'</b><br><span style="font-size:.85em">'+o.desc+'</span>', {sticky:true});
+        }
+        setTimeout(function(){ next(i+1); }, 400);
+      });
+    })(0);
+  }catch(e){
+    el.innerHTML = '<p style="padding:20px" class="muted">Carte indisponible hors connexion.</p>';
+  }
+}
+
 function practicalHtml(){
   return '<div class="card"><h2><small>Infos pratiques</small>Bien vivre les 3 jours</h2></div>'
+  +officialsCardHtml()
   +'<div class="card"><h3>Rythme & groupe (8 personnes, 60+)</h3><ul class="plain">'
   +'<li>Rouler en <b>deux groupes de 4</b> sur les routes \u00e9troites, regroupement \u00e0 chaque village.</li>'
   +'<li>Pause toutes les 1 h \u2013 1 h 15, m\u00eame courte : boire, s\u2019\u00e9tirer, v\u00e9rifier tout le monde.</li>'
@@ -1065,7 +1146,7 @@ function practicalHtml(){
   +'<li><b>Trac\u00e9s de l\u2019app :</b> affin\u00e9s automatiquement par le routeur communautaire BRouter (profil trekking, privil\u00e9gie v\u00e9loroutes et petites routes). Une fois charg\u00e9s en ligne, ils restent en m\u00e9moire hors connexion.</li>'
   +'<li><b>J1 (niveau 51 km) :</b> boucle balis\u00e9e n\u00b013 \u00ab Les Ocres \u00e0 v\u00e9lo \u00bb (pastilles orange/blanc, liaisons de raccourci en ocre jaune). L\u2019appli gratuite \u00ab Ocres \u00e0 v\u00e9lo \u00bb du Parc du Luberon ajoute audio-guides et quizz.</li>'
   +'<li><b>J3 :</b> Bonnieux et Lacoste sont sur la grande boucle balis\u00e9e \u00ab Autour du Luberon \u00bb (V863) \u2014 panneaux bleus sens horaire, orange anti-horaire.</li>'
-  +'<li><b>Surimpression \u00ab itin\u00e9raires officiels \u00bb :</b> l\u2019interrupteur de l\u2019accueil affiche en pointill\u00e9s la v\u00e9loroute du Calavon (vert), la boucle n\u00b013 des Ocres (rose) et le tron\u00e7on local de la V863 (violet) \u2014 trac\u00e9s reconstitu\u00e9s par routage sur les parcours officiels, pour comparer nos boucles \u00e0 ce qui est balis\u00e9 sur le terrain.</li>'
+  +'<li><b>Itin\u00e9raires officiels :</b> la carte en haut de cet onglet montre en pointill\u00e9s la v\u00e9loroute du Calavon (vert), la boucle n\u00b013 des Ocres (rose) et le tron\u00e7on local de la V863 (violet) \u2014 pour comparer nos boucles \u00e0 ce qui est balis\u00e9 sur le terrain.</li>'
   +'<li><b>Export GPX int\u00e9gr\u00e9 :</b> chaque journ\u00e9e a son bouton \u00ab Exporter le GPX \u00bb sous la carte \u2014 le fichier reprend exactement le trac\u00e9 rout\u00e9 affich\u00e9, altitudes comprises, pr\u00eat pour Komoot, Garmin ou OsmAnd.</li>'
   +'<li>Traces GPX officielles t\u00e9l\u00e9chargeables gratuitement sur <b>veloloisirprovence.com</b> \u2014 \u00e0 charger la veille sur un ou deux t\u00e9l\u00e9phones du groupe en secours du balisage.</li>'
   +'</ul></div>'
@@ -1286,7 +1367,6 @@ function initDayMap(day){
     drawTrack(m, 'day-'+day.id, l.pts, DAYCOLORS[day.id], 8);
     m.fitBounds(L.polyline(l.pts).getBounds(), {padding:[24,24]});
     maps[day.id] = m;
-    applyOfficials(m);
     refineTrack(m, day, l, 'rtstatus-'+day.id, 8);
   }catch(e){
     var el = document.getElementById('map-'+day.id);
@@ -1328,7 +1408,6 @@ function initOverviewMap(){
     })(0);
     if(bounds){ m.fitBounds(bounds, {padding:[26,26]}); }
     maps.apercu = m;
-    applyOfficials(m);
   }catch(e){
     var el = document.getElementById('map-apercu');
     if(el){ el.innerHTML = '<p style="padding:20px" class="muted">Carte indisponible hors connexion \u2014 la l\u00e9gende r\u00e9capitule les trois journ\u00e9es.</p>'; }
@@ -1482,6 +1561,7 @@ function buildAll(){
   });
 
   if(currentTab==='apercu'){ initOverviewMap(); }
+  else if(currentTab==='infos'){ initOfficialsMap(); }
   else{
     var d = DATA.find(function(x){return x.id===currentTab;});
     if(d){ initDayMap(d); }
@@ -1496,22 +1576,13 @@ function showTab(id, btn){
   btn.classList.add('on');
   window.scrollTo(0,0);
   if(id==='apercu'){ initOverviewMap(); return; }
+  if(id==='infos'){ initOfficialsMap(); return; }
   var day = DATA.find(function(d){return d.id===id;});
   if(day){ initDayMap(day); }
 }
 
 /* curseurs : délégation */
-mainEl.addEventListener('change', function(ev){
-  if(ev.target && ev.target.id === 'off-check'){
-    SHOW_OFF = !!ev.target.checked;
-    try{ localStorage.setItem('lubofficial', SHOW_OFF ? '1' : '0'); }catch(e){}
-    var chips = document.querySelector('.off-chips');
-    if(chips){ chips.style.display = SHOW_OFF ? 'flex' : 'none'; }
-    applyOfficialsAll();
-  }
-});
-
-mainEl.addEventListener('input', function(ev){
+    maps.apercu = m;mainEl.addEventListener('input', function(ev){
   var el = ev.target;
   if(!el || !el.classList || !el.classList.contains('km-slider')) return;
   var v = document.getElementById(el.id+'-val');
