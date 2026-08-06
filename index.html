@@ -332,7 +332,7 @@ footer{
 <header>
   <div class="wrap">
     <div class="topline">
-      <span class="ver" id="app-version">v3.3.0</span>
+      <span class="ver" id="app-version">v3.4.0</span>
       <button id="theme-toggle" title="Basculer clair / sombre" aria-label="Basculer entre mode clair et mode sombre">☀️</button>
     </div>
     <div class="eyebrow">Saint-Saturnin-lès-Apt · Luberon · Vaucluse</div>
@@ -351,14 +351,14 @@ footer{
 
 <nav class="tabs" id="tabs"></nav>
 
-<footer>Étoile du Luberon · v1.2.0 · tracés indicatifs — vérifier l'état des routes sur place</footer>
+<footer>Étoile du Luberon · v3.4.0 · tracés indicatifs — vérifier l'état des routes sur place</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 'use strict';
 /* =========================================================
-   Étoile du Luberon — PWA · v3.3.0
+   Étoile du Luberon — PWA · v3.4.0
    Base : 62 chemin de la Fontaine de Guby, Saint-Saturnin-lès-Apt
    Curseur global + curseurs par jour (20→50 km) ·
    Routage BRouter (profil trekking) avec cache et repli schématique
@@ -399,6 +399,24 @@ function saveTargets(){
 /* ---------- itinéraires officiels balisés (surimpression) ---------- */
 var SHOW_OFF = false;
 try{ SHOW_OFF = localStorage.getItem('lubofficial') === '1'; }catch(e){}
+
+/* Génération de stockage : purge les mesures et caches d'anciennes versions
+   (étiquettes de niveaux renommées → données accrochées aux mauvais niveaux). */
+var GEN = 'g4';
+try{
+  if(localStorage.getItem('lubgen') !== GEN){
+    var kill = [];
+    for(var ki=0; ki<localStorage.length; ki++){
+      var kk = localStorage.key(ki);
+      if(kk && (kk.indexOf('lubrt')===0 || kk.indexOf('lubreal')===0 || kk.indexOf('luboff')===0)){ kill.push(kk); }
+    }
+    kill.forEach(function(kk){ localStorage.removeItem(kk); });
+    localStorage.setItem('lubgen', GEN);
+  }
+}catch(e){}
+
+/* identité stable d'un niveau : jour + position, insensible aux renommages */
+function levelUid(day, l){ return day.id + '-L' + day.levels.indexOf(l); }
 
 var OFFICIALS = [
   {id:'veloroute', name:'V\u00e9loroute du Calavon (V86)', color:'#6fbf73',
@@ -742,7 +760,7 @@ var DATA = [
 /* km réel mesuré par le routage (mémorisé), sinon estimation */
 function realKm(day, l){
   try{
-    var v = parseInt(localStorage.getItem('lubreal-'+day.id+'-'+l.km),10);
+    var v = parseInt(localStorage.getItem('lubreal-'+GEN+'-'+levelUid(day,l)),10);
     if(v > 5 && v < 120){ return v; }
   }catch(e){}
   return null;
@@ -768,7 +786,7 @@ function sampleN(pts, maxN){
   return out;
 }
 
-function routeKey(day, l){ return 'lubrt4-' + day.id + '-' + l.km; }
+function routeKey(day, l){ return 'lubrt-' + GEN + '-' + levelUid(day, l); }
 
 /* distance en mètres (approx. équirectangulaire) */
 function distM(a, b){
@@ -899,7 +917,7 @@ function downloadGpx(dayId){
 
 /* ---------- routage des itinéraires officiels ---------- */
 function getOfficialRoute(o, cb){
-  var key = 'luboff2-' + o.id;
+  var key = 'luboff-' + GEN + '-' + o.id;
   try{
     var cached = localStorage.getItem(key);
     if(cached){ cb(JSON.parse(cached)); return; }
@@ -1339,7 +1357,7 @@ function refineTrack(m, day, l, statusId, nArrows){
     if(maps[m._lubId] !== m){ return; } /* carte reconstruite entre-temps */
     drawTrack(m, 'day-'+day.id, coords, DAYCOLORS[day.id], nArrows);
     ROUTED[day.id] = {coords: coords, name: l.name, km: lenKm || l.km};
-    if(lenKm){ try{ localStorage.setItem('lubreal-'+day.id+'-'+l.km, String(lenKm)); }catch(e){} }
+    if(lenKm){ try{ localStorage.setItem('lubreal-'+GEN+'-'+levelUid(day,l), String(lenKm)); }catch(e){} }
     var pr = buildProfile(coords);
     if(pr){
       var pe = document.getElementById('prof-'+day.id);
@@ -1402,7 +1420,7 @@ function initOverviewMap(){
       var day = DATA[idx];
       var l = levelFor(day);
       getRoute(day, l, function(coords, srcType, lenKm){
-        if(lenKm){ try{ localStorage.setItem('lubreal-'+day.id+'-'+l.km, String(lenKm)); }catch(e){} }
+        if(lenKm){ try{ localStorage.setItem('lubreal-'+GEN+'-'+levelUid(day,l), String(lenKm)); }catch(e){} }
         if(coords && maps.apercu === m){ drawTrack(m, 'day-'+day.id, coords, DAYCOLORS[day.id], 5); refined++; }
         else if(!coords){ failed++; }
         setTimeout(function(){ next(idx+1); }, 400);
@@ -1584,7 +1602,7 @@ function showTab(id, btn){
 }
 
 /* curseurs : délégation */
-    maps.apercu = m;mainEl.addEventListener('input', function(ev){
+mainEl.addEventListener('input', function(ev){
   var el = ev.target;
   if(!el || !el.classList || !el.classList.contains('km-slider')) return;
   var v = document.getElementById(el.id+'-val');
