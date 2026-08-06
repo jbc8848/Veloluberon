@@ -332,7 +332,7 @@ footer{
 <header>
   <div class="wrap">
     <div class="topline">
-      <span class="ver" id="app-version">v3.2.0</span>
+      <span class="ver" id="app-version">v3.3.0</span>
       <button id="theme-toggle" title="Basculer clair / sombre" aria-label="Basculer entre mode clair et mode sombre">☀️</button>
     </div>
     <div class="eyebrow">Saint-Saturnin-lès-Apt · Luberon · Vaucluse</div>
@@ -358,7 +358,7 @@ footer{
 <script>
 'use strict';
 /* =========================================================
-   Étoile du Luberon — PWA · v3.2.0
+   Étoile du Luberon — PWA · v3.3.0
    Base : 62 chemin de la Fontaine de Guby, Saint-Saturnin-lès-Apt
    Curseur global + curseurs par jour (20→50 km) ·
    Routage BRouter (profil trekking) avec cache et repli schématique
@@ -1645,7 +1645,16 @@ mainEl.addEventListener('click', function(ev){
 if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
     try{
-      navigator.serviceWorker.register('./sw.js').catch(function(){});
+      navigator.serviceWorker.register('./sw.js').then(function(reg){
+        if(reg && reg.update){ reg.update(); } /* vérifier une mise à jour à chaque ouverture */
+      }).catch(function(){});
+      /* quand un nouveau service worker prend la main : recharger une fois, automatiquement */
+      var refreshed = false;
+      navigator.serviceWorker.addEventListener('controllerchange', function(){
+        if(refreshed){ return; }
+        refreshed = true;
+        location.reload();
+      });
     }catch(e){}
   });
 }

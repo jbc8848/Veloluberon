@@ -1,10 +1,10 @@
-/* Étoile du Luberon — service worker v3.2.0
+/* Étoile du Luberon — service worker v3.3.0
    - App shell : cache-first (index, manifest, icônes, Leaflet, fonts)
    - Tuiles OSM : network-first avec mise en cache à la volée
      → les zones consultées en ligne restent visibles hors-ligne */
 'use strict';
 
-var VERSION = 'luberon-v3.2.0';
+var VERSION = 'luberon-v3.3.0';
 var SHELL_CACHE = VERSION + '-shell';
 var TILE_CACHE = VERSION + '-tiles';
 var TILE_LIMIT = 400;
@@ -104,14 +104,25 @@ self.addEventListener('fetch', function (e) {
     return;
   }
 
-  // App shell + CDN : cache-first, réseau en secours
+  // Navigations (index) : RÉSEAU d'abord — en ligne on a toujours la dernière
+  // version, hors ligne le cache prend le relais. Fini les mises à jour bloquées.
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request).then(function (res) {
+        var copy = res.clone();
+        caches.open(SHELL_CACHE).then(function (c) { c.put('./index.html', copy); });
+        return res;
+      }).catch(function () {
+        return caches.match('./index.html');
+      })
+    );
+    return;
+  }
+
+  // Reste du shell + CDN : cache-first, réseau en secours
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then(function (hit) {
-      return hit || fetch(e.request).catch(function () {
-        if (e.request.mode === 'navigate') {
-          return caches.match('./index.html');
-        }
-      });
+      return hit || fetch(e.request);
     })
   );
 });
