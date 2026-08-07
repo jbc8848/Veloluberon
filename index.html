@@ -118,6 +118,9 @@ input[type=range]::-moz-range-thumb{
 .slider-marks{display:flex; justify-content:space-between; margin-top:6px;
   font-family:'Spline Sans Mono',monospace; font-size:.62rem; color:var(--muted)}
 .legend{display:grid; gap:8px; margin-top:12px}
+.lrow[data-day]{cursor:pointer; transition:.15s}
+.lrow[data-day]:active{transform:scale(.99); background:rgba(240,184,96,.10)}
+.lrow .go{flex:none; margin-left:6px; color:var(--muted); font-size:1.3rem; line-height:1}
 .lrow{display:grid; grid-template-columns:26px 1fr auto; gap:10px; align-items:center;
   background:var(--panel); border-radius:10px; padding:9px 12px}
 .lrow .sw{width:22px; height:6px; border-radius:3px}
@@ -372,7 +375,7 @@ footer{
 <header>
   <div class="wrap">
     <div class="topline">
-      <span class="ver" id="app-version">v3.13.0</span>
+      <span class="ver" id="app-version">v3.14.0</span>
       <button id="theme-toggle" title="Basculer clair / sombre" aria-label="Basculer entre mode clair et mode sombre">☀️</button>
     </div>
     <div class="eyebrow">Saint-Saturnin-lès-Apt · Luberon · Vaucluse</div>
@@ -391,14 +394,14 @@ footer{
 
 <nav class="tabs" id="tabs"></nav>
 
-<footer>Étoile du Luberon · v3.13.0 · tracés indicatifs — vérifier l'état des routes sur place</footer>
+<footer>Étoile du Luberon · v3.14.0 · tracés indicatifs — vérifier l'état des routes sur place</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 'use strict';
 /* =========================================================
-   Étoile du Luberon — PWA · v3.13.0
+   Étoile du Luberon — PWA · v3.14.0
    Base : 62 chemin de la Fontaine de Guby, Saint-Saturnin-lès-Apt
    Curseur global + curseurs par jour (20→50 km) ·
    Routage BRouter (profil trekking) avec cache et repli schématique
@@ -1088,9 +1091,10 @@ function legendHtml(){
     var l = levelFor(day);
     totKm += kmOf(day, l);
     totD += parseInt(l.dplus.replace(/\s/g,''),10);
-    rows += '<div class="lrow"><span class="sw" style="background:'+DAYCOLORS[day.id]+'"></span>'
+    rows += '<div class="lrow" data-day="'+day.id+'" role="button" tabindex="0" aria-label="Ouvrir '+day.tab+'"><span class="sw" style="background:'+DAYCOLORS[day.id]+'"></span>'
          + '<span class="nm">'+day.tab+' \u00b7 '+l.name+'</span>'
-         + '<span class="st">'+kmLabel(day, l)+' \u00b7 '+l.dplus+' D+</span></div>';
+         + '<span class="st">'+kmLabel(day, l)+' \u00b7 '+l.dplus+' D+</span>'
+         + '<span class="go">\u203a</span></div>';
   });
   return '<div class="legend">'+rows+'</div>'
     +'<p class="map-note" style="margin-top:10px">Total s\u00e9jour : \u2248 '+totKm+' km \u00b7 '+totD+' m D+. Le curseur global r\u00e8gle les trois jours d\u2019un coup ; chaque journ\u00e9e peut ensuite \u00eatre ajust\u00e9e individuellement dans son onglet.</p>';
@@ -1628,6 +1632,7 @@ function buildAll(){
     mainEl.appendChild(sec);
 
     var b = document.createElement('button');
+    b.setAttribute('data-tab', s.id);
     var lab = day ? day.tab : s.tab;
     var sub = day ? day.date : s.date;
     b.innerHTML = lab + '<span class="d">' + sub + '</span>';
@@ -1697,6 +1702,13 @@ mainEl.addEventListener('click', function(ev){
   if(s){ toggleShare(); return; }
   var c = t.closest ? t.closest('#copy-link') : null;
   if(c){ copyShareLink(); return; }
+  var r = t.closest ? t.closest('.lrow[data-day]') : null;
+  if(r){
+    var id = r.getAttribute('data-day');
+    var btn = document.querySelector('nav.tabs button[data-tab="'+id+'"]');
+    if(btn){ showTab(id, btn); }
+    return;
+  }
 });
 
 /* ---------- bandeau d'installation (public senior : gros, clair, un bouton) ---------- */
