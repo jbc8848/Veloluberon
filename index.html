@@ -375,7 +375,7 @@ footer{
 <header>
   <div class="wrap">
     <div class="topline">
-      <span class="ver" id="app-version">v3.14.0</span>
+      <span class="ver" id="app-version">v3.15.0</span>
       <button id="theme-toggle" title="Basculer clair / sombre" aria-label="Basculer entre mode clair et mode sombre">☀️</button>
     </div>
     <div class="eyebrow">Saint-Saturnin-lès-Apt · Luberon · Vaucluse</div>
@@ -394,14 +394,14 @@ footer{
 
 <nav class="tabs" id="tabs"></nav>
 
-<footer>Étoile du Luberon · v3.14.0 · tracés indicatifs — vérifier l'état des routes sur place</footer>
+<footer>Étoile du Luberon · v3.15.0 · tracés indicatifs — vérifier l'état des routes sur place</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 'use strict';
 /* =========================================================
-   Étoile du Luberon — PWA · v3.14.0
+   Étoile du Luberon — PWA · v3.15.0
    Base : 62 chemin de la Fontaine de Guby, Saint-Saturnin-lès-Apt
    Curseur global + curseurs par jour (20→50 km) ·
    Routage BRouter (profil trekking) avec cache et repli schématique
@@ -1710,6 +1710,33 @@ mainEl.addEventListener('click', function(ev){
     return;
   }
 });
+
+/* ---------- geste : balayage vers la droite → retour à l'accueil ---------- */
+(function(){
+  var sx = 0, sy = 0, st = 0, armed = false;
+  document.addEventListener('touchstart', function(e){
+    armed = false;
+    if(GUIDON.active){ return; }                 /* jamais en mode guidon */
+    if(currentTab === 'apercu'){ return; }        /* déjà à l'accueil */
+    if(!e.touches || e.touches.length !== 1){ return; }
+    var t = e.target;
+    if(t && t.closest && t.closest('.leaflet-container, .slider-box, input, .install-bar, .qr-box')){ return; }
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY; st = Date.now();
+    armed = true;
+  }, {passive:true});
+  document.addEventListener('touchend', function(e){
+    if(!armed){ return; }
+    armed = false;
+    var c = e.changedTouches && e.changedTouches[0];
+    if(!c){ return; }
+    if(Date.now() - st > 600){ return; }          /* geste vif, pas un appui long */
+    var dx = c.clientX - sx, dy = c.clientY - sy;
+    if(dx > 80 && Math.abs(dy) < 70 && dx > Math.abs(dy) * 1.6){
+      var btn = document.querySelector('nav.tabs button[data-tab="apercu"]');
+      if(btn){ showTab('apercu', btn); }
+    }
+  }, {passive:true});
+})();
 
 /* ---------- bandeau d'installation (public senior : gros, clair, un bouton) ---------- */
 (function(){
