@@ -295,31 +295,26 @@ footer{
   .map{height:290px}
 }
 /* ---------- ligne version + thème ---------- */
-/* les popups de POI passent AU-DESSUS des contrôles +/− et 📍 */
-.leaflet-pane.leaflet-popup-pane{z-index:1100}
+/* popup ouvert : les contrôles s'effacent (ils reviennent à la fermeture) */
+.leaflet-container.popup-open .leaflet-top.leaflet-left{opacity:0; pointer-events:none; transition:opacity .15s}
+.leaflet-container .leaflet-top.leaflet-left{transition:opacity .15s}
 .leaflet-popup-content{font-size:.95rem; line-height:1.45}
 
-/* volet déroulant des points d'intérêt */
-details.poi-details{
-  margin-top:14px; border:1.5px solid var(--line); border-radius:14px;
-  background:var(--panel); overflow:hidden;
+/* POI en menus déroulants dans le déroulé */
+.tl-poi{
+  display:block; margin-top:8px; border:1px solid var(--line); border-left:3.5px solid var(--gold);
+  border-radius:10px; background:var(--panel); overflow:hidden;
 }
-details.poi-details summary{
-  padding:14px 16px; cursor:pointer; font-weight:600; font-size:.98rem;
-  font-family:'Bricolage Grotesque',sans-serif; list-style:none;
-  display:flex; align-items:center; gap:10px;
+.tl-poi.walk{border-left-color:#e0492e}
+.tl-poi summary{
+  padding:9px 12px; cursor:pointer; font-size:.86rem; font-weight:600;
+  list-style:none; display:flex; align-items:center; gap:7px;
 }
-details.poi-details summary::-webkit-details-marker{display:none}
-details.poi-details summary::after{content:'\25BE'; margin-left:auto; color:var(--muted); transition:.2s}
-details.poi-details[open] summary::after{transform:rotate(180deg)}
-.poi-item{
-  margin:0 12px 12px; padding:12px 14px; border-radius:12px;
-  background:var(--deep2); border-left:4px solid var(--gold);
-  font-size:.92rem; line-height:1.5;
-}
-.poi-item.walk{border-left-color:#e0492e}
-.poi-item b{display:block; margin-bottom:4px}
-.poi-item p{margin:0; color:var(--muted)}
+.tl-poi summary::-webkit-details-marker{display:none}
+.tl-poi summary::after{content:'\25BE'; margin-left:auto; color:var(--muted); font-size:.8em; transition:.2s}
+.tl-poi[open] summary::after{transform:rotate(180deg)}
+.tl-poi p{margin:0; padding:0 13px 11px; font-size:.85rem; line-height:1.55; color:var(--muted)}
+.tl-more .t b{display:block; margin-bottom:2px}
 .install-bar{
   position:sticky; top:0; z-index:4000;
   display:flex; align-items:center; gap:12px;
@@ -377,7 +372,7 @@ details.poi-details[open] summary::after{transform:rotate(180deg)}
 <header>
   <div class="wrap">
     <div class="topline">
-      <span class="ver" id="app-version">v3.11.0</span>
+      <span class="ver" id="app-version">v3.13.0</span>
       <button id="theme-toggle" title="Basculer clair / sombre" aria-label="Basculer entre mode clair et mode sombre">☀️</button>
     </div>
     <div class="eyebrow">Saint-Saturnin-lès-Apt · Luberon · Vaucluse</div>
@@ -396,14 +391,14 @@ details.poi-details[open] summary::after{transform:rotate(180deg)}
 
 <nav class="tabs" id="tabs"></nav>
 
-<footer>Étoile du Luberon · v3.11.0 · tracés indicatifs — vérifier l'état des routes sur place</footer>
+<footer>Étoile du Luberon · v3.13.0 · tracés indicatifs — vérifier l'état des routes sur place</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 'use strict';
 /* =========================================================
-   Étoile du Luberon — PWA · v3.11.0
+   Étoile du Luberon — PWA · v3.13.0
    Base : 62 chemin de la Fontaine de Guby, Saint-Saturnin-lès-Apt
    Curseur global + curseurs par jour (20→50 km) ·
    Routage BRouter (profil trekking) avec cache et repli schématique
@@ -979,6 +974,27 @@ function officialsToggleHtml(){
     +'<div class="off-chips" style="display:'+(SHOW_OFF?'flex':'none')+'">'+chips+'</div>';
 }
 
+/* correspondance POI ↔ étapes du déroulé (mot-clé cherché dans le texte) */
+var POITOK = {
+  'Colorado proven\u00e7al (Rustrel)':'colorado',
+  'Sentier des Ocres (Roussillon)':'sentier des ocres',
+  'Moulins & ch\u00e2teau de St-Saturnin':'moulins',
+  'Mines de Bruoux (Gargas)':'bruoux',
+  '\u00f4khra \u2014 Conservatoire des ocres':'\u00f4khra',
+  'Village de Gordes':'gordes',
+  'Caves du Palais Saint-Firmin':'firmin',
+  'Abbaye de S\u00e9nanque':'s\u00e9nanque',
+  'Village des Bories':'bories',
+  'Labyrinthe d\u2019art (Joucas)':'labyrinthe',
+  'Falaise de la Madeleine (Lioux)':'madeleine',
+  'Pont Julien':'pont julien',
+  'Moulin de J\u00e9rusalem (Goult)':'j\u00e9rusalem',
+  'Chapelle de Saint-Pantal\u00e9on':'pantal\u00e9on',
+  'Vieux Bonnieux':'bonnieux',
+  'Ch\u00e2teau de Lacoste':'lacoste',
+  'Rocher de Bellevue (Saignon)':'bellevue'
+};
+
 /* ---------- helpers UI ---------- */
 var mainEl = document.getElementById('main');
 var tabsEl = document.getElementById('tabs');
@@ -1028,11 +1044,31 @@ function profileSvg(prof){
     +'</svg>';
 }
 
-function timelineHtml(steps){
+function poiFold(p){
+  var kind = p[4] || 'w';
+  var head = kind==='s' ? '\ud83c\udfdb\ufe0f' : '\ud83d\udc5f';
+  return '<details class="tl-poi'+(kind==='s'?' site':' walk')+'">'
+    +'<summary>'+head+' '+p[2]+'</summary><p>'+p[3]+'</p></details>';
+}
+
+function timelineHtml(l){
+  var used = {};
   var h='<ul class="tl">';
-  steps.forEach(function(s){
-    h+='<li'+(s.pic?' class="pic"':'')+'><span class="h">'+s.h+'</span><span class="t">'+s.t+'</span></li>';
+  l.timeline.forEach(function(s){
+    var txt = stripTags(s.t).toLowerCase();
+    var extra = '';
+    (l.pois||[]).forEach(function(p, i){
+      if(used[i]){ return; }
+      var tok = (POITOK[p[2]] || p[2].split(' ')[0]).toLowerCase();
+      if(txt.indexOf(tok) !== -1){ used[i] = true; extra += poiFold(p); }
+    });
+    h+='<li'+(s.pic?' class="pic"':'')+'><span class="h">'+s.h+'</span><span class="t">'+s.t+extra+'</span></li>';
   });
+  var left = '';
+  (l.pois||[]).forEach(function(p, i){ if(!used[i]){ left += poiFold(p); } });
+  if(left){
+    h+='<li class="tl-more"><span class="h">\uff0b</span><span class="t"><b>\u00c0 voir aussi sur cette boucle :</b>'+left+'</span></li>';
+  }
   return h+'</ul>';
 }
 
@@ -1075,20 +1111,6 @@ function overviewHtml(){
     +'</div>';
 }
 
-function poiPanelHtml(l){
-  var list = l.pois || [];
-  if(!list.length){ return ''; }
-  var items = list.map(function(p){
-    var kind = p[4] || 'w';
-    var head = kind==='s' ? '\ud83c\udfdb\ufe0f' : '\ud83d\udc5f';
-    return '<div class="poi-item '+(kind==='s'?'site':'walk')+'"><b>'+head+' '+p[2]+'</b><p>'+p[3]+'</p></div>';
-  }).join('');
-  return '<details class="poi-details">'
-    +'<summary>\ud83d\udc5f\ud83c\udfdb\ufe0f Points d\u2019int\u00e9r\u00eat de cette boucle ('+list.length+') \u2014 descriptions & tarifs</summary>'
-    + items
-    +'</details>';
-}
-
 function dayHtml(day){
   var l = levelFor(day);
   var h = '<div class="card">'
@@ -1097,7 +1119,6 @@ function dayHtml(day){
     +sliderMarkup('slider-'+day.id, TARGETS[day.id], 'Distance de cette journ\u00e9e', day.levels.map(function(x){ return kmLabel(day, x).replace(' km',''); }), kmLabel(day, l))
     +'<div id="stats-'+day.id+'">'+statHtml({km: kmOf(day,l), dplus: l.dplus, selle: l.selle, effort: l.effort})+'</div>'
     +'<div class="variant-desc">'+l.desc+'</div>'
-    +poiPanelHtml(l)
     +'<p class="map-note" style="margin-top:10px">Objectif '+TARGETS[day.id]+' km \u2192 boucle de <b style="color:var(--gold)">'+kmLabel(day, l)+'</b>'+(realKm(day,l)!==null ? ' (distance mesur\u00e9e par routage)' : ' (estimation \u2014 affin\u00e9e d\u00e8s le chargement de la carte)')+'.</p>'
     +'</div>';
   h += '<div class="card"><h3>Carte</h3><div class="map" id="map-'+day.id+'" style="position:relative"></div>'
@@ -1109,7 +1130,7 @@ function dayHtml(day){
     +'<p class="map-note">\u2605 = base Airbnb (62 ch. de la Fontaine de Guby) \u00b7 \ud83d\udc5f = balade \u00e0 pied \u00b7 \ud83c\udfdb\ufe0f = site touristique / visite (v\u00e9los attach\u00e9s dans les deux cas) \u00b7 fl\u00e8ches = sens de parcours \u00b7 100 % compatible VTC : goudron et voie verte uniquement. GPX officiels : onglet Pratique.</p></div>';
   h += '<div class="card"><h3>Profil de d\u00e9nivel\u00e9</h3><div class="profile" id="prof-'+day.id+'">'+profileSvg(l.prof)+'</div>'
     +'<p class="map-note" id="profnote-'+day.id+'">Profil estim\u00e9 \u2014 remplac\u00e9 par les altitudes r\u00e9elles du routage d\u00e8s que la carte est charg\u00e9e.</p></div>';
-  h += '<div class="card"><h3>D\u00e9roul\u00e9 de la journ\u00e9e</h3>'+timelineHtml(l.timeline)+'</div>';
+  h += '<div class="card"><h3>D\u00e9roul\u00e9 de la journ\u00e9e</h3>'+timelineHtml(l)+'</div>';
   h += '<div class="card"><h3>Variantes m\u00e9t\u00e9o</h3><div class="meteo">';
   day.meteo.forEach(function(mm){
     h+='<div class="mrow"><span class="ico">'+mm.i+'</span><span class="txt">'+mm.t+'</span></div>';
@@ -1293,6 +1314,10 @@ function makeMap(elId){
     setTimeout(function(){ if(w.parentNode){ w.parentNode.removeChild(w); } }, 7000);
   });
   L.marker(BASE, {icon: baseIcon(), title:'Base Airbnb'}).addTo(m).bindPopup(BASE_POPUP);
+  /* popup ouvert → contrôles +/− et 📍 en fondu (contexte d'empilement Leaflet :
+     le z-index seul ne peut PAS faire passer un popup au-dessus des contrôles) */
+  m.on('popupopen', function(){ var c = m.getContainer(); if(c){ c.classList.add('popup-open'); } });
+  m.on('popupclose', function(){ var c = m.getContainer(); if(c){ c.classList.remove('popup-open'); } });
   m._tracks = {};
   addLocateControl(m);
   return m;
