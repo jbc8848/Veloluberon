@@ -332,7 +332,7 @@ footer{
 <header>
   <div class="wrap">
     <div class="topline">
-      <span class="ver" id="app-version">v3.4.0</span>
+      <span class="ver" id="app-version">v3.5.0</span>
       <button id="theme-toggle" title="Basculer clair / sombre" aria-label="Basculer entre mode clair et mode sombre">☀️</button>
     </div>
     <div class="eyebrow">Saint-Saturnin-lès-Apt · Luberon · Vaucluse</div>
@@ -351,14 +351,14 @@ footer{
 
 <nav class="tabs" id="tabs"></nav>
 
-<footer>Étoile du Luberon · v3.4.0 · tracés indicatifs — vérifier l'état des routes sur place</footer>
+<footer>Étoile du Luberon · v3.5.0 · tracés indicatifs — vérifier l'état des routes sur place</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 'use strict';
 /* =========================================================
-   Étoile du Luberon — PWA · v3.4.0
+   Étoile du Luberon — PWA · v3.5.0
    Base : 62 chemin de la Fontaine de Guby, Saint-Saturnin-lès-Apt
    Curseur global + curseurs par jour (20→50 km) ·
    Routage BRouter (profil trekking) avec cache et repli schématique
@@ -402,7 +402,7 @@ try{ SHOW_OFF = localStorage.getItem('lubofficial') === '1'; }catch(e){}
 
 /* Génération de stockage : purge les mesures et caches d'anciennes versions
    (étiquettes de niveaux renommées → données accrochées aux mauvais niveaux). */
-var GEN = 'g4';
+var GEN = 'g5';
 try{
   if(localStorage.getItem('lubgen') !== GEN){
     var kill = [];
@@ -801,8 +801,15 @@ function distM(a, b){
    la pointe est proche d'un POI (Sénanque, Colorado…) n'est pas coupée. */
 function despur(coords, pois){
   pois = pois || [];
+  /* protection structurelle : le point de rebroussement (le plus éloigné du départ)
+     ne peut JAMAIS être coupé — un aller-retour volontaire n'est pas une antenne. */
+  var farTip = coords[0], farD = 0;
+  for(var fi=0; fi<coords.length; fi++){
+    var fd = distM(coords[0], coords[fi]);
+    if(fd > farD){ farD = fd; farTip = coords[fi]; }
+  }
   var changed = true, pass = 0;
-  while(changed && pass < 3){
+  while(changed && pass < 1){
     changed = false; pass++;
     var out = [], i = 0;
     while(i < coords.length){
@@ -810,15 +817,16 @@ function despur(coords, pois){
       var travelled = 0;
       for(var j = i+2; j < coords.length && j < i+600; j++){
         travelled += distM(coords[j-1], coords[j]);
-        if(travelled > 4000) break;
+        if(travelled > 2500) break;
         if(travelled > 60 && distM(coords[i], coords[j]) < 30){
           var tip = coords[i], td = 0;
           for(var k = i+1; k < j; k++){
             var d = distM(coords[i], coords[k]);
             if(d > td){ td = d; tip = coords[k]; }
           }
-          var nearPoi = pois.some(function(p){ return distM(tip, p) < 250; });
-          if(!nearPoi){ cut = j; }
+          var nearPoi = pois.some(function(p){ return distM(tip, p) < 400; });
+          var isTurnaround = distM(tip, farTip) < 500;
+          if(!nearPoi && !isTurnaround){ cut = j; }
           break;
         }
       }
@@ -1354,10 +1362,15 @@ function refineTrack(m, day, l, statusId, nArrows){
       setStatus(statusId, 'Trac\u00e9 sch\u00e9matique (routeur indisponible \u2014 r\u00e9essayer en ligne). GPX officiels recommand\u00e9s pour le guidage.');
       return;
     }
+    if(lenKm && lenKm < l.km*0.55){
+      setStatus(statusId, 'Routage incoh\u00e9rent ('+lenKm+' km pour ~'+l.km+' attendus) \u2014 trac\u00e9 sch\u00e9matique conserv\u00e9, recharger pour r\u00e9essayer.');
+      try{ localStorage.removeItem(routeKey(day, l)); }catch(e){}
+      return;
+    }
     if(maps[m._lubId] !== m){ return; } /* carte reconstruite entre-temps */
     drawTrack(m, 'day-'+day.id, coords, DAYCOLORS[day.id], nArrows);
     ROUTED[day.id] = {coords: coords, name: l.name, km: lenKm || l.km};
-    if(lenKm){ try{ localStorage.setItem('lubreal-'+GEN+'-'+levelUid(day,l), String(lenKm)); }catch(e){} }
+    if(lenKm && lenKm > l.km*0.6 && lenKm < l.km*1.6){ try{ localStorage.setItem('lubreal-'+GEN+'-'+levelUid(day,l), String(lenKm)); }catch(e){} }
     var pr = buildProfile(coords);
     if(pr){
       var pe = document.getElementById('prof-'+day.id);
@@ -1420,7 +1433,7 @@ function initOverviewMap(){
       var day = DATA[idx];
       var l = levelFor(day);
       getRoute(day, l, function(coords, srcType, lenKm){
-        if(lenKm){ try{ localStorage.setItem('lubreal-'+GEN+'-'+levelUid(day,l), String(lenKm)); }catch(e){} }
+        if(lenKm && lenKm > l.km*0.6 && lenKm < l.km*1.6){ try{ localStorage.setItem('lubreal-'+GEN+'-'+levelUid(day,l), String(lenKm)); }catch(e){} }
         if(coords && maps.apercu === m){ drawTrack(m, 'day-'+day.id, coords, DAYCOLORS[day.id], 5); refined++; }
         else if(!coords){ failed++; }
         setTimeout(function(){ next(idx+1); }, 400);
