@@ -295,6 +295,31 @@ footer{
   .map{height:290px}
 }
 /* ---------- ligne version + thème ---------- */
+/* les popups de POI passent AU-DESSUS des contrôles +/− et 📍 */
+.leaflet-pane.leaflet-popup-pane{z-index:1100}
+.leaflet-popup-content{font-size:.95rem; line-height:1.45}
+
+/* volet déroulant des points d'intérêt */
+details.poi-details{
+  margin-top:14px; border:1.5px solid var(--line); border-radius:14px;
+  background:var(--panel); overflow:hidden;
+}
+details.poi-details summary{
+  padding:14px 16px; cursor:pointer; font-weight:600; font-size:.98rem;
+  font-family:'Bricolage Grotesque',sans-serif; list-style:none;
+  display:flex; align-items:center; gap:10px;
+}
+details.poi-details summary::-webkit-details-marker{display:none}
+details.poi-details summary::after{content:'\25BE'; margin-left:auto; color:var(--muted); transition:.2s}
+details.poi-details[open] summary::after{transform:rotate(180deg)}
+.poi-item{
+  margin:0 12px 12px; padding:12px 14px; border-radius:12px;
+  background:var(--deep2); border-left:4px solid var(--gold);
+  font-size:.92rem; line-height:1.5;
+}
+.poi-item.walk{border-left-color:#e0492e}
+.poi-item b{display:block; margin-bottom:4px}
+.poi-item p{margin:0; color:var(--muted)}
 .install-bar{
   position:sticky; top:0; z-index:4000;
   display:flex; align-items:center; gap:12px;
@@ -352,7 +377,7 @@ footer{
 <header>
   <div class="wrap">
     <div class="topline">
-      <span class="ver" id="app-version">v3.9.0</span>
+      <span class="ver" id="app-version">v3.10.0</span>
       <button id="theme-toggle" title="Basculer clair / sombre" aria-label="Basculer entre mode clair et mode sombre">☀️</button>
     </div>
     <div class="eyebrow">Saint-Saturnin-lès-Apt · Luberon · Vaucluse</div>
@@ -371,14 +396,14 @@ footer{
 
 <nav class="tabs" id="tabs"></nav>
 
-<footer>Étoile du Luberon · v3.9.0 · tracés indicatifs — vérifier l'état des routes sur place</footer>
+<footer>Étoile du Luberon · v3.10.0 · tracés indicatifs — vérifier l'état des routes sur place</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 'use strict';
 /* =========================================================
-   Étoile du Luberon — PWA · v3.9.0
+   Étoile du Luberon — PWA · v3.10.0
    Base : 62 chemin de la Fontaine de Guby, Saint-Saturnin-lès-Apt
    Curseur global + curseurs par jour (20→50 km) ·
    Routage BRouter (profil trekking) avec cache et repli schématique
@@ -1050,6 +1075,20 @@ function overviewHtml(){
     +'</div>';
 }
 
+function poiPanelHtml(l){
+  var list = l.pois || [];
+  if(!list.length){ return ''; }
+  var items = list.map(function(p){
+    var kind = p[4] || 'w';
+    var head = kind==='s' ? '\ud83c\udfdb\ufe0f' : '\ud83d\udc5f';
+    return '<div class="poi-item '+(kind==='s'?'site':'walk')+'"><b>'+head+' '+p[2]+'</b><p>'+p[3]+'</p></div>';
+  }).join('');
+  return '<details class="poi-details">'
+    +'<summary>\ud83d\udc5f\ud83c\udfdb\ufe0f Points d\u2019int\u00e9r\u00eat de cette boucle ('+list.length+') \u2014 descriptions & tarifs</summary>'
+    + items
+    +'</details>';
+}
+
 function dayHtml(day){
   var l = levelFor(day);
   var h = '<div class="card">'
@@ -1058,6 +1097,7 @@ function dayHtml(day){
     +sliderMarkup('slider-'+day.id, TARGETS[day.id], 'Distance de cette journ\u00e9e', day.levels.map(function(x){ return kmLabel(day, x).replace(' km',''); }), kmLabel(day, l))
     +'<div id="stats-'+day.id+'">'+statHtml({km: kmOf(day,l), dplus: l.dplus, selle: l.selle, effort: l.effort})+'</div>'
     +'<div class="variant-desc">'+l.desc+'</div>'
+    +poiPanelHtml(l)
     +'<p class="map-note" style="margin-top:10px">Objectif '+TARGETS[day.id]+' km \u2192 boucle de <b style="color:var(--gold)">'+kmLabel(day, l)+'</b>'+(realKm(day,l)!==null ? ' (distance mesur\u00e9e par routage)' : ' (estimation \u2014 affin\u00e9e d\u00e8s le chargement de la carte)')+'.</p>'
     +'</div>';
   h += '<div class="card"><h3>Carte</h3><div class="map" id="map-'+day.id+'" style="position:relative"></div>'
