@@ -377,16 +377,16 @@ details.poi-details[open] summary::after{transform:rotate(180deg)}
 <header>
   <div class="wrap">
     <div class="topline">
-      <span class="ver" id="app-version">v3.10.0</span>
+      <span class="ver" id="app-version">v3.11.0</span>
       <button id="theme-toggle" title="Basculer clair / sombre" aria-label="Basculer entre mode clair et mode sombre">☀️</button>
     </div>
     <div class="eyebrow">Saint-Saturnin-lès-Apt · Luberon · Vaucluse</div>
     <h1>Étoile du Luberon<br><span class="gold">3 jours · vélo électrique</span></h1>
-    <p class="subline">Mardi 30 septembre → jeudi 2 octobre 2026 · 8 cyclistes (60+) · base Airbnb, retour chaque soir · pique-niques le midi · distance réglable de 20 à 50 km par jour.</p>
+    <p class="subline">Mardi 30 septembre → jeudi 2 octobre 2026 · 8 cyclistes (60+) · base Airbnb, retour chaque soir · pique-niques le midi · quatre boucles au choix chaque jour, d’environ 20 à 60 km.</p>
     <div class="badges">
       <span class="badge">VTC électriques</span>
       <span class="badge">100 % goudron & voie verte</span>
-      <span class="badge">Curseur 20 → 50 km / jour</span>
+      <span class="badge">4 boucles / jour · ~20 → 60 km</span>
       <span class="badge">Effort 3 h – 6 h</span>
     </div>
   </div>
@@ -396,14 +396,14 @@ details.poi-details[open] summary::after{transform:rotate(180deg)}
 
 <nav class="tabs" id="tabs"></nav>
 
-<footer>Étoile du Luberon · v3.10.0 · tracés indicatifs — vérifier l'état des routes sur place</footer>
+<footer>Étoile du Luberon · v3.11.0 · tracés indicatifs — vérifier l'état des routes sur place</footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 'use strict';
 /* =========================================================
-   Étoile du Luberon — PWA · v3.10.0
+   Étoile du Luberon — PWA · v3.11.0
    Base : 62 chemin de la Fontaine de Guby, Saint-Saturnin-lès-Apt
    Curseur global + curseurs par jour (20→50 km) ·
    Routage BRouter (profil trekking) avec cache et repli schématique
@@ -447,7 +447,7 @@ try{ SHOW_OFF = localStorage.getItem('lubofficial') === '1'; }catch(e){}
 
 /* Génération de stockage : purge les mesures et caches d'anciennes versions
    (étiquettes de niveaux renommées → données accrochées aux mauvais niveaux). */
-var GEN = 'g8';
+var GEN = 'g9';
 try{
   if(localStorage.getItem('lubgen') !== GEN){
     var kill = [];
@@ -634,18 +634,18 @@ var DATA = [
         {h:'14h30', t:'Retour par la D227 en balcon, Roussillon dans le r\u00e9troviseur.'},
         {h:'15h30', t:'Arriv\u00e9e \u00e0 la base.'}
       ]},
-    {km:33, dplus:'430 m', selle:'2 h 30', effort:'\u2248 4 h', name:'Gordes par Joucas',
-      desc:'<b>Le plus beau balcon du Luberon :</b> D2 \u2192 Joucas \u2192 Gordes (visite + pique-nique face au village) \u2192 retour identique. S\u00e9nanque possible en voiture en fin d\u2019apr\u00e8s-midi (10 min).',
-      pts:P(SEG.base_joucas, SEG.joucas_gordes, rev(SEG.joucas_gordes), rev(SEG.base_joucas)),
-      prof:[[0,420],[5,340],[9,300],[12,370],[15,300],[19,330],[24,420]],
-      pois:[POI.gordes, POI.firmin, POI.bories, POI.joucasart], labels:[LBL.joucas, LBL.gordes],
+    {km:39, dplus:'560 m', selle:'2 h 50', effort:'\u2248 4 h 30', name:'Gordes & S\u00e9nanque',
+      desc:'<b>Les deux ic\u00f4nes :</b> D2 jusqu\u2019\u00e0 Joucas puis Gordes (village, caves Saint-Firmin), descente prudente dans la combe de S\u00e9nanque (passages \u00e0 10\u201312 %), photo de l\u2019abbaye, remont\u00e9e en Turbo, retour par Joucas. La combe est en cul-de-sac : l\u2019aller-retour y est le seul chemin.',
+      pts:P(SEG.base_joucas, SEG.joucas_gordes, SEG.gordes_senanque, rev(SEG.gordes_senanque), rev(SEG.joucas_gordes), rev(SEG.base_joucas)),
+      prof:[[0,420],[5,340],[9,300],[12,370],[14,430],[16,310],[18,430],[20,370],[23,300],[27,330],[32,360],[39,420]],
+      pois:[POI.gordes, POI.firmin, POI.senanque, POI.bories, POI.joucasart], labels:[LBL.joucas, LBL.gordes, LBL.senanque],
       timeline:[
-        {h:'09h30', t:'<b>D\u00e9part Airbnb.</b> D2 plein sud-ouest, descente plaisir vers Joucas.'},
-        {h:'10h45', t:'<b>Gordes</b> \u2014 mont\u00e9e en lacets (assistance Sport).'},
-        {h:'11h00', t:'Visite \u00e0 pied : ch\u00e2teau, calades, point de vue de la route de Cavaillon.'},
-        {h:'12h30', t:'<b>Pique-nique au belv\u00e9d\u00e8re</b>, face au village accroch\u00e9 \u00e0 sa falaise.', pic:true},
-        {h:'14h00', t:'Redescente par le m\u00eame itin\u00e9raire, caf\u00e9 \u00e0 Joucas.'},
-        {h:'15h30', t:'Arriv\u00e9e \u00e0 la base. Option voiture : S\u00e9nanque pour la photo du soir.'}
+        {h:'09h30', t:'<b>D\u00e9part Airbnb.</b> D2 vers Joucas (labyrinthe d\u2019art au passage).'},
+        {h:'10h45', t:'<b>Gordes</b> \u2014 village en balcon, caves du Palais Saint-Firmin (6 \u20ac).'},
+        {h:'12h00', t:'<b>Pique-nique au belv\u00e9d\u00e8re de Gordes.</b>', pic:true},
+        {h:'13h30', t:'<b>S\u00e9nanque</b> \u2014 descente prudente (10\u201312 %), photo de l\u2019abbaye, remont\u00e9e en Turbo.'},
+        {h:'15h00', t:'Retour par Joucas, pause caf\u00e9.'},
+        {h:'16h15', t:'Arriv\u00e9e \u00e0 la base.'}
       ]},
     {km:44, dplus:'850 m', selle:'3 h 30', effort:'\u2248 5 h 45', name:'Grande boucle horaire',
       desc:'<b>La boucle compl\u00e8te en sens horaire :</b> les hauteurs le matin (Croagnes, Lioux, col de Murs), pique-nique \u00e0 Murs, puis S\u00e9nanque et Gordes l\u2019apr\u00e8s-midi dans la plus belle lumi\u00e8re, retour par Joucas.',
@@ -662,20 +662,21 @@ var DATA = [
         {h:'16h00', t:'Descente vers Joucas, caf\u00e9.'},
         {h:'16h45', t:'Retour \u00e0 la base par la D2.'}
       ]},
-    {km:48, dplus:'700 m', selle:'3 h 45', effort:'\u2248 6 h', name:'Gordes, S\u00e9nanque & Murs',
-      desc:'<b>+ la mont\u00e9e \u00e0 Murs :</b> depuis S\u00e9nanque, D15 en mont\u00e9e r\u00e9guli\u00e8re jusqu\u2019au village de Murs (pique-nique), puis descente directe sur Joucas par la petite route de la combe.',
-      pts:P(SEG.base_joucas, SEG.joucas_gordes, SEG.gordes_senanque, SEG.senanque_murs, SEG.murs_joucas, rev(SEG.base_joucas)),
-      prof:[[0,420],[5,340],[9,300],[12,370],[15,310],[19,430],[22,510],[26,400],[29,300],[32,330],[36,420]],
-      pois:[POI.gordes, POI.firmin, POI.senanque, POI.bories, POI.joucasart], labels:[LBL.joucas, LBL.gordes, LBL.senanque, LBL.murs],
+    {km:52, dplus:'920 m', selle:'3 h 50', effort:'\u2248 6 h 15', name:'Grand tour des Monts de Vaucluse',
+      desc:'<b>La journ\u00e9e XL du nord-ouest, en boucle compl\u00e8te :</b> Roussillon par la D227, Joucas, Gordes, S\u00e9nanque, pique-nique \u00e0 Murs, col de Murs (627 m, vue Ventoux), grande descente de la combe de Lioux sous la falaise de la Madeleine, retour par Croagnes. Jamais deux fois la m\u00eame route.',
+      pts:P(rev(SEG.d227_base), SEG.roussillon_joucas, SEG.joucas_gordes, SEG.gordes_senanque, SEG.senanque_murs, SEG.murs_col_lioux, SEG.lioux_base),
+      prof:[[0,420],[4,360],[8,320],[12,300],[15,370],[17,310],[20,430],[23,510],[26,627],[30,450],[33,350],[38,500],[45,460],[52,420]],
+      pois:[POI.ocres, POI.joucasart, POI.gordes, POI.firmin, POI.senanque, POI.madeleine], labels:[LBL.roussillon, LBL.joucas, LBL.gordes, LBL.senanque, LBL.murs, LBL.col, LBL.lioux, LBL.croagnes],
       timeline:[
-        {h:'09h15', t:'<b>D\u00e9part Airbnb.</b> D2 vers Joucas puis Gordes.'},
-        {h:'10h30', t:'<b>Gordes</b> \u2014 visite du village en balcon.'},
+        {h:'09h00', t:'<b>D\u00e9part Airbnb.</b> D227 en balcon jusqu\u2019\u00e0 <b>Roussillon</b>, caf\u00e9 sur la place.'},
+        {h:'10h00', t:'<b>Joucas</b> puis mont\u00e9e vers <b>Gordes</b> (village en balcon).'},
         {h:'11h30', t:'<b>S\u00e9nanque</b> \u2014 descente prudente, photo de l\u2019abbaye.'},
-        {h:'12h45', t:'<b>Pique-nique \u00e0 Murs</b> apr\u00e8s la mont\u00e9e r\u00e9guli\u00e8re de la D15.', pic:true},
-        {h:'14h15', t:'Descente directe sur Joucas par la petite route de la combe.'},
-        {h:'15h15', t:'Caf\u00e9 \u00e0 Joucas, retour par la D2.'},
-        {h:'16h30', t:'Arriv\u00e9e \u00e0 la base.'}
-      ]},
+        {h:'12h45', t:'<b>Pique-nique \u00e0 Murs.</b>', pic:true},
+        {h:'14h00', t:'<b>Col de Murs (627 m)</b> \u2014 point culminant du s\u00e9jour, vue Ventoux.'},
+        {h:'14h45', t:'Grande descente de la <b>combe de Lioux</b>, falaise de la Madeleine \u00e0 main gauche.'},
+        {h:'15h30', t:'<b>Lioux</b> \u2014 pause au pied de la falaise.'},
+        {h:'16h45', t:'Retour \u00e0 la base par Croagnes.'}
+      ]}
   ],
   meteo:[
     {i:'\ud83c\udf2c\ufe0f', t:'<b>Mistral fort :</b> le plateau de Murs et le col sont tr\u00e8s expos\u00e9s \u2014 rester sur les niveaux 24\u201329 km (Gordes/S\u00e9nanque, abrit\u00e9s), ou boucle basse par Saint-Pantal\u00e9on et Goult.'},
@@ -713,20 +714,19 @@ var DATA = [
         {h:'14h00', t:'Sieste au bord du Calavon ou d\u00e9part tranquille.'},
         {h:'15h30', t:'Retour v\u00e9loroute + D943, arriv\u00e9e vers 16 h \u2014 ap\u00e9ro de cl\u00f4ture.'}
       ]},
-    {km:48, dplus:'420 m', selle:'3 h 30', effort:'\u2248 5 h 15', name:'Gargas, Pont Julien & Goult',
-      desc:'<b>La grande travers\u00e9e du Calavon :</b> sortie par Gargas (Mines de Bruoux en option), descente sur Apt, v\u00e9loroute jusqu\u2019au Pont Julien, puis Goult (moulin de J\u00e9rusalem) et la chapelle de Saint-Pantal\u00e9on \u2014 une seule grande boucle, jamais deux fois la m\u00eame route.',
-      pts:P(rev(SEG.gargas_nord), rev(SEG.apt_gargas), SEG.veloroute_pj, SEG.pj_goult, SEG.goult_stpant, SEG.stpant_base),
-      prof:[[0,420],[3,340],[6,290],[9,250],[13,230],[17,220],[21,230],[25,250],[29,230],[33,280],[38,320],[45,420]],
-      pois:[POI.bruoux, POI.pj, POI.jerusalem, POI.stpant], labels:[LBL.gargas, LBL.apt, LBL.pj, LBL.goult, LBL.stpant],
+    {km:45, dplus:'350 m', selle:'3 h', effort:'\u2248 5 h', name:'+ Goult & Saint-Pantal\u00e9on',
+      desc:'<b>La boucle compl\u00e8te du Calavon :</b> D943 sur Apt (march\u00e9), v\u00e9loroute jusqu\u2019au Pont Julien, puis Goult (moulin de J\u00e9rusalem) et la chapelle de Saint-Pantal\u00e9on, retour par la D2. <i>Variante : sortie par Gargas et les Mines de Bruoux (+8 km, ~55 km au total).</i>',
+      pts:P(SEG.d943_apt, SEG.veloroute_pj, SEG.pj_goult, SEG.goult_stpant, SEG.stpant_base),
+      prof:[[0,420],[4,320],[8,240],[12,225],[16,220],[20,250],[24,230],[28,280],[33,320],[45,420]],
+      pois:[POI.pj, POI.jerusalem, POI.stpant], labels:[LBL.apt, LBL.pj, LBL.goult, LBL.stpant],
       timeline:[
-        {h:'09h00', t:'<b>D\u00e9part Airbnb.</b> Petites routes du sud vers <b>Gargas</b>.'},
-        {h:'09h45', t:'Option Mines de Bruoux (visite 1 h, sur r\u00e9servation) ou descente directe sur Apt.'},
-        {h:'10h45', t:'<b>Apt</b> \u2014 ravitaillement au march\u00e9 couvert, caf\u00e9.'},
-        {h:'11h30', t:'<b>V\u00e9loroute du Calavon</b> plein ouest, viaducs de l\u2019ancienne voie ferr\u00e9e.'},
-        {h:'12h30', t:'<b>Pique-nique au Pont Julien</b> \u2014 pont romain de 2 000 ans.', pic:true},
-        {h:'14h00', t:'<b>Goult</b> \u2014 mont\u00e9e au moulin de J\u00e9rusalem, terrasses de culture.'},
-        {h:'15h00', t:'<b>Saint-Pantal\u00e9on</b> \u2014 chapelle romane et n\u00e9cropole rupestre.'},
-        {h:'16h00', t:'Retour \u00e0 la base par la D2.'}
+        {h:'09h15', t:'<b>D\u00e9part Airbnb.</b> D943 sur Apt, ravitaillement au march\u00e9 couvert.'},
+        {h:'10h45', t:'<b>V\u00e9loroute du Calavon</b> plein ouest, viaducs de l\u2019ancienne voie ferr\u00e9e.'},
+        {h:'12h00', t:'<b>Pique-nique au Pont Julien</b> \u2014 pont romain de 2 000 ans.', pic:true},
+        {h:'13h30', t:'<b>Goult</b> \u2014 mont\u00e9e au moulin de J\u00e9rusalem, terrasses de culture.'},
+        {h:'14h30', t:'<b>Saint-Pantal\u00e9on</b> \u2014 chapelle romane et n\u00e9cropole rupestre.'},
+        {h:'15h30', t:'Retour par la D2.'},
+        {h:'16h15', t:'Arriv\u00e9e \u00e0 la base \u2014 ap\u00e9ro de cl\u00f4ture.'}
       ]},
     {km:60, dplus:'710 m', selle:'3 h 45', effort:'\u2248 6 h 15', name:'+ Bonnieux & Lacoste',
       desc:'<b>Les villages perch\u00e9s du Petit Luberon \u2014 la grande journ\u00e9e (~60 km mesur\u00e9s) :</b> v\u00e9loroute jusqu\u2019au Pont Julien, mont\u00e9e unique \u00e0 Bonnieux (pique-nique face au Ventoux), Lacoste et son ch\u00e2teau, puis Goult, Saint-Pantal\u00e9on et retour.',
